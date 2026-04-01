@@ -17,7 +17,7 @@ Un reproductor de música minimalista, elegante y ergonómico diseñado para dis
 ## 🚀 Instalación (Desarrollo)
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/TU_USUARIO/reproductor-kivy.git
+   git clone https://github.com/victgolozkiv/reproductor-kivy.git
    cd reproductor-kivy
    ```
 2. Instala las dependencias:
@@ -28,6 +28,14 @@ Un reproductor de música minimalista, elegante y ergonómico diseñado para dis
    ```bash
    python main.py
    ```
+
+## ⚠️ Estado Actual y Errores Conocidos
+
+> [!IMPORTANT]
+> **Recomendación de uso:** Actualmente recomiendo usar esta aplicación principalmente como una herramienta para **descargar canciones** de manera limpia y sin anuncios.
+
+### Errores que no se han podido solucionar aún:
+- **Notificaciones en Android 14:** El control de música en la pantalla de bloqueo y las notificaciones persistentes presentan fallos de estabilidad en versiones recientes de Android. La música suena bien de fondo, pero los controles visuales pueden no aparecer o cerrarse inesperadamente.
 
 ## 📱 Compilación e Instalación en Android
 Este proyecto utiliza `buildozer` (probado en Android 14 / API 34).
@@ -67,11 +75,10 @@ Si te gusta este proyecto y quieres apoyar mi trabajo (¡incluso 1 peso ayuda! )
 
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=for-the-badge&logo=paypal)](https://www.paypal.com/paypalme/VictorRicardo162/1)
 
-
-
 ---
 Desarrollado con ❤️ por victor.
-esto se hizo la mayoria con IA 
-lo creee para una sulucion por un problema que tenia por que cuando me iva de con mi novia queria irme escuhando musica en el carro jaj no encotraba ningun reproductor que me diera esto sin anuncios y que fuera bonito y que funcionara bien y gratis 
-y que me permitiera descargar canciones sin limitaciones casi todo fue por esto por querer descargar las canciones gratis antes usaba snaptube pero tiene demasiados anuncios y dicen que es muy inseguro. 
-espero les guste este proyecto lo hice  todo con IA antigravty y voy a seguir mejorando y el que quiera ayudar a mejorarlo adelante 
+Esto se hizo casi en su totalidad con Inteligencia Artificial (**Antigravity**).
+
+Lo creé como una solución personal porque cuando salía con mi novia quería escuchar música en el carro sin anuncios, que fuera bonito y gratis. Mi mayor problema era querer descargar las canciones sin las limitaciones y los anuncios excesivos (e inseguros) de apps como Snaptube.
+
+Espero les guste este proyecto. Seguiré mejorándolo con la ayuda de la IA y cualquiera que quiera colaborar es bienvenido.
