@@ -29,6 +29,12 @@ from kivy.core.window import Window
 from kivy.animation import Animation
 from kivy.metrics import dp
 from kivy.uix.scrollview import ScrollView
+from kivy.factory import Factory
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.image import AsyncImage
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.graphics import Color, Line
 
 from kivy.logger import Logger
 from kivymd.app import MDApp
@@ -36,7 +42,7 @@ from kivymd.uix.filemanager import MDFileManager
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.screenmanager import MDScreenManager
 from kivy.uix.screenmanager import SlideTransition
-from kivymd.uix.button import MDIconButton, MDFlatButton
+from kivymd.uix.button import MDIconButton, MDFlatButton, MDFloatingActionButton
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.list import (
     TwoLineAvatarIconListItem,
@@ -51,17 +57,134 @@ from kivymd.uix.list import (
 )
 from kivy.uix.recycleview import RecycleView
 from kivymd.uix.card import MDCard
-from kivymd.uix.label import MDLabel
+from kivymd.uix.label import MDLabel, MDIcon
 from kivymd.uix.slider import MDSlider
 from kivymd.uix.spinner import MDSpinner
 from kivymd.uix.fitimage import FitImage
 from kivymd.uix.dialog import MDDialog
 from kivymd.toast import toast
 from kivymd.uix.snackbar import MDSnackbar
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.anchorlayout import MDAnchorLayout
+from kivymd.uix.toolbar import MDTopAppBar
 
 from extractor import get_audio_url, search_youtube, get_recommendations, download_audio
 from player import get_best_player
-from desktop_ui import DESKTOP_UI
+from desktop_ui import get_desktop_ui
+
+# Helper UI Classes
+class ModernCard(MDCard):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.md_bg_color = "#121212"
+        self.radius = [dp(16)]
+        self.elevation = 0
+        self.padding = dp(12)
+        self.spacing = dp(8)
+
+class GlowingIconButton(MDIconButton):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.theme_text_color = "Custom"
+        self.text_color = "#BB86FC"
+        self.user_font_size = "24sp"
+
+class SectionTitle(MDLabel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.theme_text_color = "Custom"
+        self.text_color = "#FFFFFF"
+        self.font_style = "H6"
+        self.bold = True
+        self.adaptive_height = True
+        self.padding = [dp(16), dp(16), dp(16), dp(8)]
+
+class SubsectionTitle(MDLabel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.theme_text_color = "Custom"
+        self.text_color = "#B3B3B3"
+        self.font_style = "Body2"
+        self.adaptive_height = True
+        self.padding = [dp(16), dp(8), dp(16), dp(16)]
+
+class MoodChip(MDFlatButton):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.md_bg_color = "#1E1E1E"
+        self.theme_text_color = "Custom"
+        self.text_color = "#FFFFFF"
+        self.font_style = "Caption"
+        self.size_hint = (None, None)
+        self.height = dp(36)
+        self.padding = [dp(20), dp(8)]
+        self.radius = [dp(18)]
+
+class ModernSongCard(MDCard):
+    thumbnail = StringProperty()
+    title = StringProperty()
+    artist = StringProperty()
+    index = NumericProperty(0)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.md_bg_color = "#0A0A0A"
+        self.radius = [dp(12)]
+        self.elevation = 0
+        self.padding = 0
+        self.spacing = 0
+        
+        layout = MDBoxLayout(orientation="vertical", spacing=dp(8))
+        
+        rel = RelativeLayout(size_hint_y=None, height=dp(160))
+        self.card_thumbnail = FitImage(
+            radius=[dp(12), dp(12), dp(12), dp(12)],
+            allow_stretch=True,
+            keep_ratio=False
+        )
+        rel.add_widget(self.card_thumbnail)
+        
+        play_btn = MDIconButton(
+            icon="play-circle",
+            theme_text_color="Custom",
+            text_color="#BB86FC",
+            user_font_size="48sp",
+            pos_hint={"center_x": 0.5, "center_y": 0.5},
+            md_bg_color=[0, 0, 0, 0.5],
+            radius=[dp(24)],
+            opacity=0.9
+        )
+        play_btn.bind(on_release=lambda x: MDApp.get_running_app().play_selected_song(self.index))
+        rel.add_widget(play_btn)
+        layout.add_widget(rel)
+        
+        info = MDBoxLayout(orientation="vertical", spacing=dp(4), padding=[dp(12), dp(8), dp(12), dp(12)], adaptive_height=True)
+        self.title_label = MDLabel(
+            theme_text_color="Custom",
+            text_color="#FFFFFF",
+            font_style="Subtitle2",
+            bold=True,
+            shorten=True,
+            shorten_from="right",
+            adaptive_height=True
+        )
+        self.artist_label = MDLabel(
+            theme_text_color="Custom",
+            text_color="#B3B3B3",
+            font_style="Caption",
+            shorten=True,
+            adaptive_height=True
+        )
+        info.add_widget(self.title_label)
+        info.add_widget(self.artist_label)
+        layout.add_widget(info)
+        self.add_widget(layout)
+        
+        self.bind(thumbnail=self._update_thumb, title=self._update_title, artist=self._update_artist)
+
+    def _update_thumb(self, *args): self.card_thumbnail.source = self.thumbnail
+    def _update_title(self, *args): self.title_label.text = self.title
+    def _update_artist(self, *args): self.artist_label.text = self.artist
 
 # UI Classes for RecycleView
 class SearchItem(MDCard):
@@ -72,11 +195,159 @@ class SearchItem(MDCard):
     song_data = ObjectProperty()
     is_playlist_view = BooleanProperty(False)
 
-# UI Classes for RecycleView
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.md_bg_color = "#0D0D0D"
+        self.radius = [dp(12)]
+        self.elevation = 2
+        self.shadow_color = [0.737, 0.525, 0.988, 0.15]
+        self.padding = [dp(12), dp(8)]
+        self.spacing = dp(12)
+        self.ripple_behavior = True
+        
+        layout = MDBoxLayout(orientation="horizontal", spacing=dp(12))
+        
+        self.thumb_card = MDCard(
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+            radius=[dp(8)],
+            elevation=0,
+            md_bg_color="#1A1A1A"
+        )
+        with self.thumb_card.canvas.before:
+            self.border_color = Color(0.737, 0.525, 0.988, 0.1)
+            self.border_line = Line(width=1.5, rounded_rectangle=(0, 0, dp(48), dp(48), 8))
+        self.thumb_card.bind(pos=self._update_canvas, size=self._update_canvas)
+
+        self.thumb_image = AsyncImage(
+            size_hint=(1, 1),
+            allow_stretch=True,
+            keep_ratio=False
+        )
+        self.thumb_card.add_widget(self.thumb_image)
+        layout.add_widget(self.thumb_card)
+        
+        info = MDBoxLayout(orientation="vertical", spacing=dp(2), size_hint_x=1)
+        self.title_label = MDLabel(
+            theme_text_color="Custom",
+            text_color="#FFFFFF",
+            font_size="15sp",
+            bold=True,
+            shorten=True,
+            shorten_from="right",
+            adaptive_height=True
+        )
+        self.artist_label = MDLabel(
+            theme_text_color="Custom",
+            text_color="#BB86FC",
+            font_size="13sp",
+            shorten=True,
+            shorten_from="right",
+            adaptive_height=True
+        )
+        info.add_widget(self.title_label)
+        info.add_widget(self.artist_label)
+        layout.add_widget(info)
+        
+        self.action_btn = MDIconButton(
+            theme_text_color="Custom",
+            user_font_size="20sp",
+            size_hint=(None, None),
+            size=(dp(40), dp(40)),
+            pos_hint={"center_y": 0.5}
+        )
+        self.action_btn.bind(on_release=lambda x: MDApp.get_running_app().on_item_right_button(self))
+        layout.add_widget(self.action_btn)
+        
+        self.add_widget(layout)
+        self.bind(title=self._update_ui, artist=self._update_ui, thumbnail=self._update_ui, is_playlist_view=self._update_ui)
+
+    def _update_canvas(self, instance, value):
+        self.border_line.rounded_rectangle = (instance.x, instance.y, instance.width, instance.height, 8)
+
+    def _update_ui(self, *args):
+        self.title_label.text = self.title or "Sin título"
+        self.artist_label.text = self.artist or "Artista"
+        self.thumb_image.source = self.thumbnail or ""
+        self.border_color.rgba = (0.737, 0.525, 0.988, 0.3) if self.is_playlist_view else (0.737, 0.525, 0.988, 0.1)
+        self.action_btn.icon = "trash-can" if self.is_playlist_view else "playlist-plus"
+        self.action_btn.text_color = "#BB86FC" if self.is_playlist_view else "#888888"
+
+    def on_release(self):
+        MDApp.get_running_app().play_selected_song(self.index)
 
 class PlaylistItem(MDCard):
     text = StringProperty()
     playlist_name = StringProperty()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.md_bg_color = "#0D0D0D"
+        self.radius = [dp(12)]
+        self.elevation = 2
+        self.shadow_color = [0.737, 0.525, 0.988, 0.2]
+        self.padding = [dp(12), dp(10)]
+        self.ripple_behavior = True
+        
+        layout = MDBoxLayout(orientation="horizontal", spacing=dp(12))
+        
+        icon_card = MDCard(
+            size_hint=(None, None),
+            size=(dp(44), dp(44)),
+            radius=[dp(10)],
+            elevation=0,
+            md_bg_color="#BB86FC"
+        )
+        icon_card.add_widget(MDIcon(
+            icon="playlist-music",
+            theme_text_color="Custom",
+            text_color="#000000",
+            font_size="24sp",
+            halign="center",
+            valign="center"
+        ))
+        layout.add_widget(icon_card)
+        
+        info = MDBoxLayout(orientation="vertical", spacing=dp(2), size_hint_x=1, pos_hint={"center_y": 0.5})
+        self.title_label = MDLabel(
+            theme_text_color="Custom",
+            text_color="#FFFFFF",
+            font_size="16sp",
+            bold=True,
+            shorten=True,
+            shorten_from="right",
+            adaptive_height=True
+        )
+        info.add_widget(self.title_label)
+        info.add_widget(MDLabel(
+            text="Playlist",
+            theme_text_color="Custom",
+            text_color="#888888",
+            font_size="12sp",
+            adaptive_height=True
+        ))
+        layout.add_widget(info)
+        
+        del_btn = MDIconButton(
+            icon="trash-can",
+            theme_text_color="Custom",
+            text_color="#FF4444",
+            user_font_size="20sp",
+            size_hint=(None, None),
+            size=(dp(40), dp(40)),
+            pos_hint={"center_y": 0.5}
+        )
+        del_btn.bind(on_release=lambda x: MDApp.get_running_app().delete_playlist(self.text))
+        layout.add_widget(del_btn)
+        
+        self.add_widget(layout)
+        self.bind(text=self._update_text)
+
+    def _update_text(self, *args):
+        self.title_label.text = self.text
+
+    def on_release(self):
+        MDApp.get_running_app().open_playlist(self.text)
 
 class OfflineItem(MDCard):
     title = StringProperty()
@@ -84,747 +355,462 @@ class OfflineItem(MDCard):
     index = NumericProperty()
     song_data = ObjectProperty()
 
-KV_RULES = '''
-<ModernCard@MDCard>:
-    md_bg_color: "#121212"
-    radius: [16, 16, 16, 16]
-    elevation: 0
-    padding: "12dp"
-    spacing: "8dp"
-
-<GlowingIconButton@MDIconButton>:
-    theme_text_color: "Custom"
-    text_color: "#BB86FC"
-    user_font_size: "24sp"
-
-<SectionTitle@MDLabel>:
-    theme_text_color: "Custom"
-    text_color: "#FFFFFF"
-    font_style: "H6"
-    bold: True
-    adaptive_height: True
-    padding: [16, 16, 16, 8]
-
-<SubsectionTitle@MDLabel>:
-    theme_text_color: "Custom"
-    text_color: "#B3B3B3"
-    font_style: "Body2"
-    adaptive_height: True
-    padding: [16, 8, 16, 16]
-
-<MoodChip@MDFlatButton>:
-    md_bg_color: "#1E1E1E"
-    theme_text_color: "Custom"
-    text_color: "#FFFFFF"
-    font_style: "Caption"
-    size_hint: None, None
-    height: "36dp"
-    padding: [20, 8]
-    radius: [18, 18, 18, 18]
-
-# =============================================================================
-# TARJETA DE CANCIÓN MODERNA (Grid 2 columnas)
-# =============================================================================
-
-<ModernSongCard@MDCard>:
-    md_bg_color: "#0A0A0A"
-    radius: [12, 12, 12, 12]
-    elevation: 0
-    padding: 0
-    spacing: 0
-    
-    MDBoxLayout:
-        orientation: "vertical"
-        spacing: "8dp"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.md_bg_color = "#0D0D0D"
+        self.radius = [dp(12)]
+        self.elevation = 2
+        self.shadow_color = [0.737, 0.525, 0.988, 0.15]
+        self.padding = [dp(12), dp(8)]
+        self.ripple_behavior = True
         
-        RelativeLayout:
-            size_hint_y: None
-            height: "160dp"
-            
-            FitImage:
-                id: card_thumbnail
-                source: root.thumbnail if hasattr(root, 'thumbnail') else ""
-                radius: [12, 12, 12, 12]
-                allow_stretch: True
-                keep_ratio: False
-            
-            MDIconButton:
-                icon: "play-circle"
-                theme_text_color: "Custom"
-                text_color: "#BB86FC"
-                user_font_size: "48sp"
-                pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                md_bg_color: [0, 0, 0, 0.5]
-                radius: [24, 24, 24, 24]
-                opacity: 0.9
-                on_release: app.play_selected_song(root.index if hasattr(root, 'index') else 0)
+        layout = MDBoxLayout(orientation="horizontal", spacing=dp(12))
         
-        MDBoxLayout:
-            orientation: "vertical"
-            spacing: "4dp"
-            padding: [12, 8, 12, 12]
-            adaptive_height: True
-            
-            MDLabel:
-                text: root.title if hasattr(root, 'title') else "Título"
-                theme_text_color: "Custom"
-                text_color: "#FFFFFF"
-                font_style: "Subtitle2"
-                bold: True
-                shorten: True
-                shorten_from: "right"
-                adaptive_height: True
-            
-            MDLabel:
-                text: root.artist if hasattr(root, 'artist') else "Artista"
-                theme_text_color: "Custom"
-                text_color: "#B3B3B3"
-                font_style: "Caption"
-                shorten: True
-                adaptive_height: True
-
-# =============================================================================
-# ITEMS DE LISTA
-# =============================================================================
-
-<SearchItem@MDCard>:
-    # Tarjeta moderna con diseño morado y negro
-    md_bg_color: "#0D0D0D"
-    radius: [12, 12, 12, 12]
-    elevation: 2
-    shadow_color: [0.737, 0.525, 0.988, 0.15]
-    padding: [12, 8, 12, 8]
-    spacing: 12
-    on_release: app.play_selected_song(root.index)
-    
-    MDBoxLayout:
-        orientation: "horizontal"
-        spacing: "12dp"
+        icon_card = MDCard(
+            size_hint=(None, None),
+            size=(dp(48), dp(48)),
+            radius=[dp(8)],
+            elevation=0,
+            md_bg_color="#1A1A1A"
+        )
+        with icon_card.canvas.before:
+            Color(0.737, 0.525, 0.988, 0.2)
+            self.border_line = Line(width=1.5, rounded_rectangle=(0, 0, dp(48), dp(48), 8))
+        icon_card.bind(pos=self._update_canvas, size=self._update_canvas)
         
-        # Thumbnail con borde morado
-        MDCard:
-            size_hint: None, None
-            size: dp(48), dp(48)
-            radius: [8, 8, 8, 8]
-            elevation: 0
-            md_bg_color: "#1A1A1A"
-            
-            canvas.before:
-                Color:
-                    rgba: (0.737, 0.525, 0.988, 0.3) if root.is_playlist_view else (0.737, 0.525, 0.988, 0.1)
-                Line:
-                    width: 1.5
-                    rounded_rectangle: (self.x, self.y, self.width, self.height, 8)
-            
-            AsyncImage:
-                source: root.thumbnail if root.thumbnail else ""
-                size_hint: 1, 1
-                radius: [8, 8, 8, 8]
-                allow_stretch: True
-                keep_ratio: False
+        icon_card.add_widget(MDIcon(
+            icon="music-note",
+            theme_text_color="Custom",
+            text_color="#BB86FC",
+            font_size="24sp",
+            halign="center",
+            valign="center"
+        ))
+        layout.add_widget(icon_card)
         
-        # Información de la canción
-        MDBoxLayout:
-            orientation: "vertical"
-            spacing: "2dp"
-            size_hint_x: 1
-            
-            MDLabel:
-                text: root.title or "Sin título"
-                theme_text_color: "Custom"
-                text_color: "#FFFFFF"
-                font_size: "15sp"
-                bold: True
-                shorten: True
-                shorten_from: "right"
-                adaptive_height: True
-                
-            MDLabel:
-                text: root.artist or "Artista"
-                theme_text_color: "Custom"
-                text_color: "#BB86FC"
-                font_size: "13sp"
-                shorten: True
-                shorten_from: "right"
-                adaptive_height: True
+        info = MDBoxLayout(orientation="vertical", spacing=dp(2), size_hint_x=1)
+        self.title_label = MDLabel(
+            theme_text_color="Custom",
+            text_color="#FFFFFF",
+            font_size="15sp",
+            bold=True,
+            shorten=True,
+            shorten_from="right",
+            adaptive_height=True
+        )
+        self.artist_label = MDLabel(
+            theme_text_color="Custom",
+            text_color="#888888",
+            font_size="13sp",
+            adaptive_height=True
+        )
+        info.add_widget(self.title_label)
+        info.add_widget(self.artist_label)
+        layout.add_widget(info)
         
-        # Botón de acción derecho
-        MDIconButton:
-            icon: "trash-can" if root.is_playlist_view else "playlist-plus"
-            theme_text_color: "Custom"
-            text_color: "#BB86FC" if root.is_playlist_view else "#888888"
-            user_font_size: "20sp"
-            size_hint: None, None
-            size: dp(40), dp(40)
-            pos_hint: {"center_y": 0.5}
-            on_release: app.on_item_right_button(root)
-
-<PlaylistItem@MDCard>:
-    # Tarjeta moderna para playlists
-    md_bg_color: "#0D0D0D"
-    radius: [12, 12, 12, 12]
-    elevation: 2
-    shadow_color: [0.737, 0.525, 0.988, 0.2]
-    padding: [12, 10, 12, 10]
-    on_release: app.open_playlist(root.text)
-    
-    MDBoxLayout:
-        orientation: "horizontal"
-        spacing: "12dp"
+        del_btn = MDIconButton(
+            icon="trash-can",
+            theme_text_color="Custom",
+            text_color="#FF4444",
+            user_font_size="20sp",
+            size_hint=(None, None),
+            size=(dp(40), dp(40)),
+            pos_hint={"center_y": 0.5}
+        )
+        del_btn.bind(on_release=lambda x: MDApp.get_running_app().delete_downloaded_song(self.song_data.get('url')))
+        layout.add_widget(del_btn)
         
-        # Icono de playlist con fondo morado
-        MDCard:
-            size_hint: None, None
-            size: dp(44), dp(44)
-            radius: [10, 10, 10, 10]
-            elevation: 0
-            md_bg_color: "#BB86FC"
-            
-            MDIcon:
-                icon: "playlist-music"
-                theme_text_color: "Custom"
-                text_color: "#000000"
-                font_size: "24sp"
-                halign: "center"
-                valign: "center"
+        self.add_widget(layout)
+        self.bind(title=self._update_ui, artist=self._update_ui)
+
+    def _update_canvas(self, instance, value):
+        self.border_line.rounded_rectangle = (instance.x, instance.y, instance.width, instance.height, 8)
+
+    def _update_ui(self, *args):
+        self.title_label.text = self.title or ""
+        self.artist_label.text = self.artist or ""
+
+    def on_release(self):
+        MDApp.get_running_app().play_local_song(self.index)
+
+# Screens for Mobile
+class MobileScreenLibrary(MDScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "library"
+        self.md_bg_color = "#000000"
         
-        # Nombre de la playlist
-        MDBoxLayout:
-            orientation: "vertical"
-            spacing: "2dp"
-            size_hint_x: 1
-            pos_hint: {"center_y": 0.5}
-            
-            MDLabel:
-                text: root.text
-                theme_text_color: "Custom"
-                text_color: "#FFFFFF"
-                font_size: "16sp"
-                bold: True
-                shorten: True
-                shorten_from: "right"
-                adaptive_height: True
-                
-            MDLabel:
-                text: "Playlist"
-                theme_text_color: "Custom"
-                text_color: "#888888"
-                font_size: "12sp"
-                adaptive_height: True
+        app = MDApp.get_running_app()
         
-        # Botón eliminar
-        MDIconButton:
-            icon: "trash-can"
-            theme_text_color: "Custom"
-            text_color: "#FF4444"
-            user_font_size: "20sp"
-            size_hint: None, None
-            size: dp(40), dp(40)
-            pos_hint: {"center_y": 0.5}
-            on_release: app.delete_playlist(root.text)
-
-<OfflineItem@MDCard>:
-    # Tarjeta moderna para música offline
-    md_bg_color: "#0D0D0D"
-    radius: [12, 12, 12, 12]
-    elevation: 2
-    shadow_color: [0.737, 0.525, 0.988, 0.15]
-    padding: [12, 8, 12, 8]
-    on_release: app.play_local_song(root.index)
-    
-    MDBoxLayout:
-        orientation: "horizontal"
-        spacing: "12dp"
+        main_layout = MDBoxLayout(orientation="vertical")
         
-        # Icono de música con borde morado
-        MDCard:
-            size_hint: None, None
-            size: dp(48), dp(48)
-            radius: [8, 8, 8, 8]
-            elevation: 0
-            md_bg_color: "#1A1A1A"
-            
-            canvas.before:
-                Color:
-                    rgba: (0.737, 0.525, 0.988, 0.2)
-                Line:
-                    width: 1.5
-                    rounded_rectangle: (self.x, self.y, self.width, self.height, 8)
-            
-            MDIcon:
-                icon: "music-note"
-                theme_text_color: "Custom"
-                text_color: "#BB86FC"
-                font_size: "24sp"
-                halign: "center"
-                valign: "center"
+        self.ids.top_bar = MDTopAppBar(
+            title="Mi Biblioteca",
+            anchor_title="left",
+            elevation=0,
+            md_bg_color="#000000",
+            specific_text_color="#FFFFFF"
+        )
+        self.ids.top_bar.right_action_items = [
+            ["playlist-music", lambda x: app.go_to_playlists()],
+            ["folder-music", lambda x: app.go_to_offline()]
+        ]
+        main_layout.add_widget(self.ids.top_bar)
         
-        # Información
-        MDBoxLayout:
-            orientation: "vertical"
-            spacing: "2dp"
-            size_hint_x: 1
-            
-            MDLabel:
-                text: root.title
-                theme_text_color: "Custom"
-                text_color: "#FFFFFF"
-                font_size: "15sp"
-                bold: True
-                shorten: True
-                shorten_from: "right"
-                adaptive_height: True
-                
-            MDLabel:
-                text: root.artist
-                theme_text_color: "Custom"
-                text_color: "#888888"
-                font_size: "13sp"
-                adaptive_height: True
+        search_layout = MDBoxLayout(orientation="vertical", size_hint_y=None, height=dp(60), padding=[dp(16), dp(8)])
+        self.ids.search_input = MDTextField(
+            hint_text="Buscar música...",
+            mode="fill",
+            fill_color_normal="#1A1A1A",
+            fill_color_focus="#1A1A1A",
+            hint_text_color_normal="#888888",
+            hint_text_color_focus="#BB86FC",
+            text_color_normal="#FFFFFF",
+            text_color_focus="#FFFFFF",
+            icon_left="magnify",
+            icon_left_color_normal="#BB86FC",
+            active_line_color_normal="#BB86FC"
+        )
+        self.ids.search_input.bind(on_text_validate=lambda x: app.search_songs(x.text))
+        search_layout.add_widget(self.ids.search_input)
+        main_layout.add_widget(search_layout)
         
-        # Botón eliminar
-        MDIconButton:
-            icon: "trash-can"
-            theme_text_color: "Custom"
-            text_color: "#FF4444"
-            user_font_size: "20sp"
-            size_hint: None, None
-            size: dp(40), dp(40)
-            pos_hint: {"center_y": 0.5}
-            on_release: app.delete_downloaded_song(root.song_data.get('url'))
-'''
-
-MOBILE_ROOT_KV = '''
-MDScreenManager:
-    MobileScreenLibrary:
-    MobileScreenPlayer:
-    MobileScreenOffline:
-    MobileScreenPlaylists:
-'''
-
-KV_RULES += '''
-# =============================================================================
-# PANTALLA PRINCIPAL MODERNIZADA
-# =============================================================================
-
-<MobileScreenLibrary@MDScreen>:
-    name: "library"
-    md_bg_color: "#000000"
-    
-    MDBoxLayout:
-        orientation: "vertical"
+        header_layout = MDBoxLayout(size_hint_y=None, height=dp(40), padding=[dp(16), dp(8), dp(16), 0])
+        self.ids.list_header = MDLabel(
+            text="RECOMENDADOS",
+            theme_text_color="Custom",
+            text_color="#BB86FC",
+            font_style="Subtitle2",
+            bold=True,
+            halign="left",
+            valign="center"
+        )
+        header_layout.add_widget(self.ids.list_header)
+        main_layout.add_widget(header_layout)
         
-        # Top Bar sin padding extra
-        MDTopAppBar:
-            id: top_bar
-            title: "Mi Biblioteca"
-            anchor_title: "left"
-            elevation: 0
-            md_bg_color: "#000000"
-            specific_text_color: "#FFFFFF"
-            left_action_items: []
-            right_action_items: [["playlist-music", lambda x: app.go_to_playlists()], ["folder-music", lambda x: app.go_to_offline()]]
-            
-        # Barra de búsqueda compacta
-        MDBoxLayout:
-            orientation: "vertical"
-            size_hint_y: None
-            height: "60dp"
-            padding: [16, 8, 16, 8]
-            
-            MDTextField:
-                id: search_input
-                hint_text: "Buscar música..."
-                mode: "fill"
-                fill_color_normal: "#1A1A1A"
-                fill_color_focus: "#1A1A1A"
-                hint_text_color_normal: "#888888"
-                hint_text_color_focus: "#BB86FC"
-                text_color_normal: "#FFFFFF"
-                text_color_focus: "#FFFFFF"
-                icon_left: "magnify"
-                icon_left_color_normal: "#BB86FC"
-                active_line_color_normal: "#BB86FC"
-                on_text_validate: app.search_songs(self.text)
-
-        # Header de sección
-        MDBoxLayout:
-            size_hint_y: None
-            height: "40dp"
-            padding: [16, 8, 16, 0]
-            
-            MDLabel:
-                id: list_header
-                text: "RECOMENDADOS"
-                theme_text_color: "Custom"
-                text_color: "#BB86FC"
-                font_style: "Subtitle2"
-                bold: True
-                halign: "left"
-                valign: "center"
-
-        # Lista de resultados
-        MDBoxLayout:
-            orientation: "vertical"
-            size_hint_y: 1
-            padding: [8, 4, 8, 0]  # Sin padding abajo
-            
-            RecycleView:
-                id: results_rv
-                viewclass: 'SearchItem'
-                size_hint: 1, 1
-                bar_width: dp(4)
-                bar_color: [0.737, 0.525, 0.988, 0.5]
-                bar_inactive_color: [0.737, 0.525, 0.988, 0.2]
-                scroll_type: ['bars', 'content']
-                
-                RecycleBoxLayout:
-                    default_size: None, dp(72)
-                    default_size_hint: 1, None
-                    size_hint_y: None
-                    height: self.minimum_height
-                    orientation: 'vertical'
-                    spacing: dp(8)
-                    padding: [8, 0, 8, 8]
-
-        # Spinner de carga centrado (overlay)
-        MDAnchorLayout:
-            id: spinner_container
-            size_hint: (None, None)
-            size: (dp(50), dp(50))
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-            
-            MDSpinner:
-                id: search_spinner
-                size_hint: (None, None)
-                size: (dp(40), dp(40))
-                active: False
-                color: "#BB86FC"
-
-    # FAB para ir al reproductor (posición optimizada)
-    MDFloatingActionButton:
-        icon: "music-note"
-        md_bg_color: "#BB86FC"
-        text_color: "#000000"
-        size_hint: (None, None)
-        size: (dp(56), dp(56))
-        pos_hint: {"right": 0.95, "y": 0.02}
-        on_release: app.go_to_player()
-
-<MobileScreenOffline@MDScreen>:
-    name: "offline"
-    md_bg_color: "#000000"
-    
-    MDBoxLayout:
-        orientation: "vertical"
+        results_layout = MDBoxLayout(orientation="vertical", size_hint_y=1, padding=[dp(8), dp(4), dp(8), 0])
+        self.ids.results_rv = RecycleView(
+            size_hint=(1, 1),
+            bar_width=dp(4),
+            bar_color=[0.737, 0.525, 0.988, 0.5],
+            bar_inactive_color=[0.737, 0.525, 0.988, 0.2],
+            scroll_type=['bars', 'content']
+        )
+        self.ids.results_rv.viewclass = 'SearchItem'
         
-        MDTopAppBar:
-            title: "Descargas"
-            anchor_title: "left"
-            elevation: 0
-            md_bg_color: "#000000"
-            specific_text_color: "#FFFFFF"
-            left_action_items: [["arrow-left", lambda x: app.go_to_library()]]
-            right_action_items: [["folder-settings", lambda x: app.open_file_manager()]]
-
-        MDBoxLayout:
-            orientation: "vertical"
-            padding: [8, 8, 8, 80]
-            
-            RecycleView:
-                id: offline_rv
-                viewclass: 'OfflineItem'
-                RecycleBoxLayout:
-                    default_size: None, dp(72)
-                    default_size_hint: 1, None
-                    size_hint_y: None
-                    height: self.minimum_height
-                    orientation: 'vertical'
-                    spacing: dp(8)
-                    padding: [8, 0, 8, 0]
-
-    MDFloatingActionButton:
-        icon: "refresh"
-        md_bg_color: "#BB86FC"
-        text_color: "#000000"
-        size_hint: (None, None)
-        size: (dp(56), dp(56))
-        pos_hint: {"right": 0.95, "y": 0.02}
-        on_release: app.load_offline_songs()
-
-<MobileScreenPlaylists@MDScreen>:
-    name: "playlists"
-    md_bg_color: "#000000"
-    
-    MDBoxLayout:
-        orientation: "vertical"
+        self.rv_layout = RecycleBoxLayout(
+            default_size=(None, dp(72)),
+            default_size_hint=(1, None),
+            size_hint_y=None,
+            orientation='vertical',
+            spacing=dp(8),
+            padding=[dp(8), 0, dp(8), dp(8)]
+        )
+        self.rv_layout.bind(minimum_height=self.rv_layout.setter('height'))
+        self.ids.results_rv.add_widget(self.rv_layout)
+        results_layout.add_widget(self.ids.results_rv)
+        main_layout.add_widget(results_layout)
         
-        MDTopAppBar:
-            title: "Mis Playlists"
-            anchor_title: "left"
-            elevation: 0
-            md_bg_color: "#000000"
-            specific_text_color: "#FFFFFF"
-            left_action_items: [["arrow-left", lambda x: app.go_to_library()]]
-            right_action_items: [["plus", lambda x: app.create_playlist_dialog()]]
-
-        MDBoxLayout:
-            orientation: "vertical"
-            padding: [8, 8, 8, 8]
-            
-            RecycleView:
-                id: playlists_rv
-                viewclass: 'PlaylistItem'
-                RecycleBoxLayout:
-                    default_size: None, dp(72)
-                    default_size_hint: 1, None
-                    size_hint_y: None
-                    height: self.minimum_height
-                    orientation: 'vertical'
-                    spacing: dp(8)
-                    padding: [8, 0, 8, 0]
-
-<MobileScreenPlayer@MDScreen>:
-    name: "player"
-    md_bg_color: "#000000"
-    
-    MDBoxLayout:
-        orientation: "vertical"
-        spacing: "8dp"
+        # Overlay for spinner
+        self.ids.spinner_container = MDAnchorLayout(
+            size_hint=(None, None),
+            size=(dp(50), dp(50)),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}
+        )
+        self.ids.search_spinner = MDSpinner(
+            size_hint=(None, None),
+            size=(dp(40), dp(40)),
+            active=False,
+            color="#BB86FC"
+        )
+        self.ids.spinner_container.add_widget(self.ids.search_spinner)
         
-        MDTopAppBar:
-            title: ""
-            elevation: 0
-            md_bg_color: "#000000"
-            left_action_items: [["chevron-down", lambda x: app.go_to_library()]]
-            right_action_items: [["playlist-plus", lambda x: app.add_song_to_playlist_dialog(app.get_current_song_data())], ["download", lambda x: app.download_song()]]
-            specific_text_color: "#BB86FC"
+        # Root for screen
+        root_rel = RelativeLayout()
+        root_rel.add_widget(main_layout)
+        root_rel.add_widget(self.ids.spinner_container)
+        
+        fab = MDFloatingActionButton(
+            icon="music-note",
+            md_bg_color="#BB86FC",
+            text_color="#000000",
+            size_hint=(None, None),
+            size=(dp(56), dp(56)),
+            pos_hint={"right": 0.95, "y": 0.02}
+        )
+        fab.bind(on_release=lambda x: app.go_to_player())
+        root_rel.add_widget(fab)
+        
+        self.add_widget(root_rel)
 
-        # Album Art con glow morado
-        MDBoxLayout:
-            orientation: "vertical"
-            size_hint_y: 0.42
-            padding: ["32dp", "16dp"]
-            
-            MDCard:
-                id: album_card
-                size_hint: (1, 1)
-                radius: [24, 24, 24, 24]
-                elevation: 8
-                md_bg_color: "#000000"
-                shadow_color: [0.737, 0.525, 0.988, 0.4]
-                
-                canvas.before:
-                    Color:
-                        rgba: (0.737, 0.525, 0.988, 0.6)
-                    Line:
-                        width: 3
-                        rounded_rectangle: (self.x, self.y, self.width, self.height, 24)
-                
-                FitImage:
-                    id: thumbnail
-                    source: ""
-                    radius: [24, 24, 24, 24]
-                    allow_stretch: True
-                    keep_ratio: False
-            
-            MDSpinner:
-                id: loading_spinner
-                size_hint: (None, None)
-                size: (dp(46), dp(46))
-                pos_hint: {'center_x': .5, 'center_y': .5}
-                active: False
-                color: "#BB86FC"
+class MobileScreenOffline(MDScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "offline"
+        self.md_bg_color = "#000000"
+        app = MDApp.get_running_app()
+        
+        layout = MDBoxLayout(orientation="vertical")
+        
+        self.ids.top_bar = MDTopAppBar(
+            title="Descargas",
+            anchor_title="left",
+            elevation=0,
+            md_bg_color="#000000",
+            specific_text_color="#FFFFFF",
+            left_action_items=[["arrow-left", lambda x: app.go_to_library()]],
+            right_action_items=[["folder-settings", lambda x: app.open_file_manager()]]
+        )
+        layout.add_widget(self.ids.top_bar)
+        
+        content = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(8), dp(8), dp(80)])
+        self.ids.offline_rv = RecycleView(viewclass='OfflineItem')
+        rv_layout = RecycleBoxLayout(
+            default_size=(None, dp(72)),
+            default_size_hint=(1, None),
+            size_hint_y=None,
+            orientation='vertical',
+            spacing=dp(8),
+            padding=[dp(8), 0, dp(8), 0]
+        )
+        rv_layout.bind(minimum_height=rv_layout.setter('height'))
+        self.ids.offline_rv.add_widget(rv_layout)
+        content.add_widget(self.ids.offline_rv)
+        layout.add_widget(content)
+        
+        rel = RelativeLayout()
+        rel.add_widget(layout)
+        
+        fab = MDFloatingActionButton(
+            icon="refresh",
+            md_bg_color="#BB86FC",
+            text_color="#000000",
+            size_hint=(None, None),
+            size=(dp(56), dp(56)),
+            pos_hint={"right": 0.95, "y": 0.02}
+        )
+        fab.bind(on_release=lambda x: app.load_offline_songs())
+        rel.add_widget(fab)
+        
+        self.add_widget(rel)
 
-        # Song Information con mejor tipografía
-        MDBoxLayout:
-            orientation: "vertical"
-            adaptive_height: True
-            spacing: "6dp"
-            padding: ["24dp", "8dp"]
-            
-            MDLabel:
-                id: song_title
-                text: "Título de la canción"
-                halign: "center"
-                theme_text_color: "Custom"
-                text_color: "#FFFFFF"
-                font_size: "20sp"
-                bold: True
-                adaptive_height: True
-            
-            MDLabel:
-                id: artist_name
-                text: "Artista"
-                halign: "center"
-                theme_text_color: "Custom"
-                text_color: "#BB86FC"
-                font_size: "16sp"
-                adaptive_height: True
+class MobileScreenPlaylists(MDScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "playlists"
+        self.md_bg_color = "#000000"
+        app = MDApp.get_running_app()
+        
+        layout = MDBoxLayout(orientation="vertical")
+        
+        self.ids.top_bar = MDTopAppBar(
+            title="Mis Playlists",
+            anchor_title="left",
+            elevation=0,
+            md_bg_color="#000000",
+            specific_text_color="#FFFFFF",
+            left_action_items=[["arrow-left", lambda x: app.go_to_library()]],
+            right_action_items=[["plus", lambda x: app.create_playlist_dialog()]]
+        )
+        layout.add_widget(self.ids.top_bar)
+        
+        content = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(8), dp(8), dp(8)])
+        self.ids.playlists_rv = RecycleView(viewclass='PlaylistItem')
+        rv_layout = RecycleBoxLayout(
+            default_size=(None, dp(72)),
+            default_size_hint=(1, None),
+            size_hint_y=None,
+            orientation='vertical',
+            spacing=dp(8),
+            padding=[dp(8), 0, dp(8), 0]
+        )
+        rv_layout.bind(minimum_height=rv_layout.setter('height'))
+        self.ids.playlists_rv.add_widget(rv_layout)
+        content.add_widget(self.ids.playlists_rv)
+        layout.add_widget(content)
+        
+        self.add_widget(layout)
 
-        # Progress bar con mejor diseño
-        MDBoxLayout:
-            orientation: "vertical"
-            adaptive_height: True
-            spacing: "8dp"
-            padding: ["24dp", "12dp"]
-            
-            MDSlider:
-                id: progress_slider
-                size_hint_y: None
-                height: dp(30)
-                min: 0
-                max: 100
-                value: 0
-                color: "#BB86FC"
-                hint: False
-            
-            MDBoxLayout:
-                orientation: "horizontal"
-                adaptive_height: True
-                
-                MDLabel:
-                    id: current_time_label
-                    text: "00:00"
-                    font_size: "12sp"
-                    theme_text_color: "Custom"
-                    text_color: "#888888"
-                    size_hint_x: 1
-                    halign: "left"
-                
-                MDLabel:
-                    id: total_time_label
-                    text: "00:00"
-                    font_size: "12sp"
-                    theme_text_color: "Custom"
-                    text_color: "#888888"
-                    size_hint_x: 1
-                    halign: "right"
+class MobileScreenPlayer(MDScreen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "player"
+        self.md_bg_color = "#000000"
+        app = MDApp.get_running_app()
+        
+        layout = MDBoxLayout(orientation="vertical", spacing=dp(8))
+        
+        self.ids.top_bar = MDTopAppBar(
+            title="",
+            elevation=0,
+            md_bg_color="#000000",
+            specific_text_color="#BB86FC",
+            left_action_items=[["chevron-down", lambda x: app.go_to_library()]]
+        )
+        self.ids.top_bar.right_action_items = [
+            ["playlist-plus", lambda x: app.add_song_to_playlist_dialog(app.get_current_song_data())],
+            ["download", lambda x: app.download_song()]
+        ]
+        layout.add_widget(self.ids.top_bar)
+        
+        # Album Art
+        art_layout = MDBoxLayout(orientation="vertical", size_hint_y=0.42, padding=[dp(32), dp(16)])
+        self.ids.album_card = MDCard(
+            size_hint=(1, 1),
+            radius=[dp(24)],
+            elevation=8,
+            md_bg_color="#000000",
+            shadow_color=[0.737, 0.525, 0.988, 0.4]
+        )
+        with self.ids.album_card.canvas.before:
+            self.album_border_color = Color(0.737, 0.525, 0.988, 0.6)
+            self.album_border = Line(width=3, rounded_rectangle=(0, 0, 0, 0, 24))
+        self.ids.album_card.bind(pos=self._update_album_border, size=self._update_album_border)
+        
+        self.ids.thumbnail = FitImage(radius=[dp(24)], allow_stretch=True, keep_ratio=False)
+        self.ids.album_card.add_widget(self.ids.thumbnail)
+        
+        art_rel = RelativeLayout()
+        art_rel.add_widget(self.ids.album_card)
+        
+        self.ids.loading_spinner = MDSpinner(
+            size_hint=(None, None),
+            size=(dp(46), dp(46)),
+            pos_hint={'center_x': .5, 'center_y': .5},
+            active=False,
+            color="#BB86FC"
+        )
+        art_rel.add_widget(self.ids.loading_spinner)
+        art_layout.add_widget(art_rel)
+        layout.add_widget(art_layout)
+        
+        # Song Info
+        info_layout = MDBoxLayout(orientation="vertical", adaptive_height=True, spacing=dp(6), padding=[dp(24), dp(8)])
+        self.ids.song_title = MDLabel(
+            text="Título de la canción",
+            halign="center",
+            theme_text_color="Custom",
+            text_color="#FFFFFF",
+            font_size="20sp",
+            bold=True,
+            adaptive_height=True
+        )
+        self.ids.artist_name = MDLabel(
+            text="Artista",
+            halign="center",
+            theme_text_color="Custom",
+            text_color="#BB86FC",
+            font_size="16sp",
+            adaptive_height=True
+        )
+        info_layout.add_widget(self.ids.song_title)
+        info_layout.add_widget(self.ids.artist_name)
+        layout.add_widget(info_layout)
+        
+        # Progress Bar
+        progress_layout = MDBoxLayout(orientation="vertical", adaptive_height=True, spacing=dp(8), padding=[dp(24), dp(12)])
+        self.ids.progress_slider = MDSlider(
+            size_hint_y=None, height=dp(30),
+            min=0, max=100, value=0,
+            color="#BB86FC", hint=False
+        )
+        progress_layout.add_widget(self.ids.progress_slider)
+        
+        times_layout = MDBoxLayout(orientation="horizontal", adaptive_height=True)
+        self.ids.current_time_label = MDLabel(
+            text="00:00", font_size="12sp",
+            theme_text_color="Custom", text_color="#888888",
+            size_hint_x=1, halign="left"
+        )
+        self.ids.total_time_label = MDLabel(
+            text="00:00", font_size="12sp",
+            theme_text_color="Custom", text_color="#888888",
+            size_hint_x=1, halign="right"
+        )
+        times_layout.add_widget(self.ids.current_time_label)
+        times_layout.add_widget(self.ids.total_time_label)
+        progress_layout.add_widget(times_layout)
+        layout.add_widget(progress_layout)
+        
+        # Controls
+        controls_layout = MDBoxLayout(orientation="vertical", size_hint_y=None, height=dp(220), padding=[0, dp(10), 0, dp(20)], spacing=dp(12))
+        
+        main_ctrl_anchor = MDAnchorLayout(anchor_x="center", anchor_y="center", size_hint_y=None, height=dp(64))
+        main_ctrl_box = MDBoxLayout(orientation="horizontal", size_hint=(None, None), size=(dp(320), dp(48)), spacing=dp(16))
+        
+        rewind_btn = MDIconButton(icon="rewind-10", user_font_size="24sp", theme_text_color="Custom", text_color="#888888", size_hint=(None, None), size=(dp(48), dp(48)))
+        rewind_btn.bind(on_release=lambda x: app.seek_relative(-10))
+        
+        prev_btn = MDIconButton(icon="skip-previous", user_font_size="36sp", theme_text_color="Custom", text_color="#BB86FC", size_hint=(None, None), size=(dp(48), dp(48)))
+        prev_btn.bind(on_release=lambda x: app.on_previous())
+        
+        play_card = MDCard(size_hint=(None, None), size=(dp(56), dp(56)), radius=[dp(28)], elevation=4, md_bg_color="#BB86FC", shadow_color=[0.737, 0.525, 0.988, 0.6], pos_hint={"center_y": 0.5})
+        self.ids.play_pause_btn = MDIconButton(icon="pause", user_font_size="32sp", theme_text_color="Custom", text_color="#000000", pos_hint={"center_x": .5, "center_y": .5}, size_hint=(1, 1))
+        self.ids.play_pause_btn.bind(on_release=lambda x: app.toggle_playback())
+        play_card.add_widget(self.ids.play_pause_btn)
+        
+        next_btn = MDIconButton(icon="skip-next", user_font_size="36sp", theme_text_color="Custom", text_color="#BB86FC", size_hint=(None, None), size=(dp(48), dp(48)))
+        next_btn.bind(on_release=lambda x: app.on_next())
+        
+        ff_btn = MDIconButton(icon="fast-forward-10", user_font_size="24sp", theme_text_color="Custom", text_color="#888888", size_hint=(None, None), size=(dp(48), dp(48)))
+        ff_btn.bind(on_release=lambda x: app.seek_relative(10))
+        
+        main_ctrl_box.add_widget(rewind_btn)
+        main_ctrl_box.add_widget(prev_btn)
+        main_ctrl_box.add_widget(play_card)
+        main_ctrl_box.add_widget(next_btn)
+        main_ctrl_box.add_widget(ff_btn)
+        main_ctrl_anchor.add_widget(main_ctrl_box)
+        controls_layout.add_widget(main_ctrl_anchor)
+        
+        sec_ctrl_anchor = MDAnchorLayout(anchor_x="center", anchor_y="center", size_hint_y=None, height=dp(44))
+        sec_ctrl_box = MDBoxLayout(orientation="horizontal", size_hint=(None, None), size=(dp(168), dp(40)), spacing=dp(24))
+        
+        self.ids.shuffle_btn = MDIconButton(icon="shuffle", user_font_size="18sp", theme_text_color="Custom", text_color="#444444", size_hint=(None, None), size=(dp(40), dp(40)))
+        self.ids.shuffle_btn.bind(on_release=lambda x: app.toggle_shuffle())
+        
+        self.ids.repeat_btn = MDIconButton(icon="repeat", user_font_size="18sp", theme_text_color="Custom", text_color="#444444", size_hint=(None, None), size=(dp(40), dp(40)))
+        self.ids.repeat_btn.bind(on_release=lambda x: app.toggle_repeat())
+        
+        self.ids.download_btn = MDIconButton(icon="download", user_font_size="18sp", theme_text_color="Custom", text_color="#BB86FC", size_hint=(None, None), size=(dp(40), dp(40)))
+        self.ids.download_btn.bind(on_release=lambda x: app.download_song())
+        
+        sec_ctrl_box.add_widget(self.ids.shuffle_btn)
+        sec_ctrl_box.add_widget(self.ids.repeat_btn)
+        sec_ctrl_box.add_widget(self.ids.download_btn)
+        sec_ctrl_anchor.add_widget(sec_ctrl_box)
+        controls_layout.add_widget(sec_ctrl_anchor)
+        
+        layout.add_widget(controls_layout)
+        self.add_widget(layout)
 
-        # Controls centrados perfectamente
-        MDBoxLayout:
-            orientation: "vertical"
-            size_hint_y: None
-            height: "220dp"
-            padding: [0, "10dp", 0, "20dp"]
-            spacing: "12dp"
-            
-            # Main Controls - centrados perfectamente
-            MDAnchorLayout:
-                anchor_x: "center"
-                anchor_y: "center"
-                size_hint_y: None
-                height: "64dp"
-                
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    size_hint: (None, None)
-                    size: (dp(320), dp(48))
-                    spacing: "16dp"
+    def _update_album_border(self, instance, value):
+        self.album_border.rounded_rectangle = (instance.x, instance.y, instance.width, instance.height, 24)
 
-                    # Rewind 10s
-                    MDIconButton:
-                        icon: "rewind-10"
-                        user_font_size: "24sp"
-                        theme_text_color: "Custom"
-                        text_color: "#888888"
-                        size_hint: (None, None)
-                        size: (dp(48), dp(48))
-                        on_release: app.seek_relative(-10)
+class MobileRootLayout(MDScreenManager):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.add_widget(MobileScreenLibrary())
+        self.add_widget(MobileScreenPlayer())
+        self.add_widget(MobileScreenOffline())
+        self.add_widget(MobileScreenPlaylists())
 
-                    # Skip previous
-                    MDIconButton:
-                        icon: "skip-previous"
-                        user_font_size: "36sp"
-                        theme_text_color: "Custom"
-                        text_color: "#BB86FC"
-                        size_hint: (None, None)
-                        size: (dp(48), dp(48))
-                        on_release: app.on_previous()
-                    
-                    # Play/Pause button (circular morado)
-                    MDCard:
-                        size_hint: None, None
-                        size: dp(56), dp(56)
-                        radius: [28, 28, 28, 28]
-                        elevation: 4
-                        md_bg_color: "#BB86FC"
-                        shadow_color: [0.737, 0.525, 0.988, 0.6]
-                        pos_hint: {"center_y": 0.5}
-                        
-                        MDIconButton:
-                            id: play_pause_btn
-                            icon: "pause"
-                            user_font_size: "32sp"
-                            theme_text_color: "Custom"
-                            text_color: "#000000"
-                            pos_hint: {"center_x": .5, "center_y": .5}
-                            size_hint: (1, 1)
-                            on_release: app.toggle_playback()
+# Register classes in Factory
+Factory.register('ModernCard', cls=ModernCard)
+Factory.register('GlowingIconButton', cls=GlowingIconButton)
+Factory.register('SectionTitle', cls=SectionTitle)
+Factory.register('SubsectionTitle', cls=SubsectionTitle)
+Factory.register('MoodChip', cls=MoodChip)
+Factory.register('ModernSongCard', cls=ModernSongCard)
+Factory.register('SearchItem', cls=SearchItem)
+Factory.register('PlaylistItem', cls=PlaylistItem)
+Factory.register('OfflineItem', cls=OfflineItem)
+Factory.register('MobileScreenLibrary', cls=MobileScreenLibrary)
+Factory.register('MobileScreenOffline', cls=MobileScreenOffline)
+Factory.register('MobileScreenPlaylists', cls=MobileScreenPlaylists)
+Factory.register('MobileScreenPlayer', cls=MobileScreenPlayer)
+Factory.register('MobileRootLayout', cls=MobileRootLayout)
 
-                    # Skip next
-                    MDIconButton:
-                        icon: "skip-next"
-                        user_font_size: "36sp"
-                        theme_text_color: "Custom"
-                        text_color: "#BB86FC"
-                        size_hint: (None, None)
-                        size: (dp(48), dp(48))
-                        on_release: app.on_next()
-                    
-                    # Fast forward 10s
-                    MDIconButton:
-                        icon: "fast-forward-10"
-                        user_font_size: "24sp"
-                        theme_text_color: "Custom"
-                        text_color: "#888888"
-                        size_hint: (None, None)
-                        size: (dp(48), dp(48))
-                        on_release: app.seek_relative(10)
-            
-            # Secondary Controls - shuffle, repeat, download
-            MDAnchorLayout:
-                anchor_x: "center"
-                anchor_y: "center"
-                size_hint_y: None
-                height: "44dp"
-                
-                MDBoxLayout:
-                    orientation: "horizontal"
-                    size_hint: (None, None)
-                    size: (dp(168), dp(40))
-                    spacing: "24dp"
-                    
-                    MDIconButton:
-                        id: shuffle_btn
-                        icon: "shuffle"
-                        user_font_size: "18sp"
-                        theme_text_color: "Custom"
-                        text_color: "#444444"
-                        size_hint: (None, None)
-                        size: (dp(40), dp(40))
-                        on_release: app.toggle_shuffle()
-                    
-                    MDIconButton:
-                        id: repeat_btn
-                        icon: "repeat"
-                        user_font_size: "18sp"
-                        theme_text_color: "Custom"
-                        text_color: "#444444"
-                        size_hint: (None, None)
-                        size: (dp(40), dp(40))
-                        on_release: app.toggle_repeat()
-                    
-                    MDIconButton:
-                        id: download_btn
-                        icon: "download"
-                        user_font_size: "18sp"
-                        theme_text_color: "Custom"
-                        text_color: "#BB86FC"
-                        size_hint: (None, None)
-                        size: (dp(40), dp(40))
-                        on_release: app.download_song()
-'''
 
 class MusicPlayerApp(MDApp):
     is_shuffle = BooleanProperty(False)
@@ -1009,15 +995,14 @@ class MusicPlayerApp(MDApp):
 
         # Load appropriate UI based on platform
         try:
-            Builder.load_string(KV_RULES)
             if platform == "android":
-                self.root = Builder.load_string(MOBILE_ROOT_KV)
+                self.root = MobileRootLayout()
             else:
-                self.root = Builder.load_string(DESKTOP_UI)
+                self.root = get_desktop_ui()
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
-            Logger.error(f"App: Error crítico cargando KV:\n{error_trace}")
+            Logger.error(f"App: Error crítico cargando UI:\n{error_trace}")
             from kivymd.uix.label import MDLabel
             return MDLabel(text=f"Error al iniciar:\n{str(e)[:100]}", halign="center")
         
