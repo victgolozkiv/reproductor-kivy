@@ -171,15 +171,16 @@ def download_audio(youtube_url, save_dir):
 
 def get_recommendations():
     """
-    Fetches a list of recommended/trending songs based on user preferences.
+    Fetches a list of recommended/trending songs with a focus on global and popular hits.
     """
-    seeds = [
-        "Peso Pluma", "Canserbero", "Rock en Español", 
-        "Victor Mendevil", "Trap Latino", "erzz",
-        "corridos tumbados", "trap malandro"
+    global_seeds = [
+        "Top 50 Global", "Billboard Hot 100", "Spotify Global Hits",
+        "Today's Top Hits", "YouTube Music Trending", "Global Chart 2024",
+        "Éxitos del momento", "Mejor música 2024"
     ]
-    query = random.choice(seeds)
-    return search_youtube(query, limit=20)
+    # Mix global hits with some variety
+    query = random.choice(global_seeds)
+    return search_youtube(query, limit=30)
 
 if __name__ == "__main__":
     # Test

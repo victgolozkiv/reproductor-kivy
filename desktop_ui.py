@@ -82,7 +82,7 @@ DESKTOP_UI = '''
         pos_hint: {"center_y": 0.5}
 
 <SearchItem@MDCard>:
-    md_bg_color: "#121212"
+    md_bg_color: "#181818"
     radius: [16, 16, 16, 16]
     elevation: 0
     padding: 0
@@ -99,8 +99,10 @@ DESKTOP_UI = '''
             source: root.thumbnail if hasattr(root, 'thumbnail') else ""
             allow_stretch: True
             keep_ratio: False
-            # Simulate FitImage with canvas if needed, but for now AsyncImage is safer
+            # Optimized masking for sharpness
             canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1
                 StencilPush
                 RoundedRectangle:
                     pos: self.pos
@@ -111,36 +113,39 @@ DESKTOP_UI = '''
                 StencilUnUse
                 StencilPop
         
-        MDCard: # Play button overlay on hover (simplified)
-            size_hint: None, None
-            size: "48dp", "48dp"
-            pos_hint: {"right": 0.95, "bottom": 0.05}
-            radius: [24, 24, 24, 24]
-            md_bg_color: "#BB86FC"
-            elevation: 4
-            MDIcon:
-                icon: "play"
-                halign: "center"
-                valign: "center"
-                theme_text_color: "Custom"
-                text_color: "#000000"
+        # Overlay gradient for depth
+        canvas.after:
+            Color:
+                rgba: 0, 0, 0, 0.1
+            Rectangle:
+                pos: self.pos
+                size: self.size
     
     MDBoxLayout:
         orientation: "vertical"
-        padding: "12dp"
+        padding: ["12dp", "16dp", "12dp", "16dp"]
         spacing: "4dp"
         adaptive_height: True
         
         MDLabel:
-            text: root.title if hasattr(root, 'title') else "Título"
+            text: root.title if hasattr(root, 'title') else "Sin título"
             bold: True
-            font_style: "Subtitle1"
+            font_style: "H6"
+            font_size: "16sp"
+            theme_text_color: "Custom"
+            text_color: "#FFFFFF"
             shorten: True
+            shorten_from: "right"
+            adaptive_height: True
+        
         MDLabel:
-            text: root.artist if hasattr(root, 'artist') else "Artista"
-            theme_text_color: "Secondary"
+            text: root.artist if hasattr(root, 'artist') else "YouTube Music"
+            theme_text_color: "Custom"
+            text_color: "#B3B3B3"
             font_style: "Caption"
+            font_size: "13sp"
             shorten: True
+            adaptive_height: True
 
 <DesktopScreenLibrary@MDScreen>:
     name: "library"

@@ -1684,6 +1684,20 @@ class MusicPlayerApp(MDApp):
         # Concurrency: Use threading to avoid blocking main loop
         threading.Thread(target=self._search_songs_thread, args=(query,), daemon=True).start()
 
+    def _get_best_thumb(self, thumbnails):
+        """Helper to extract the highest resolution thumbnail available"""
+        if not thumbnails: return ""
+        if isinstance(thumbnails, str): return thumbnails
+        try:
+            # Sort by width/height descending
+            valid_thumbs = [t for t in thumbnails if t.get('url')]
+            if not valid_thumbs: return ""
+            valid_thumbs.sort(key=lambda x: x.get('width', 0) or x.get('height', 0), reverse=True)
+            return valid_thumbs[0]['url']
+        except Exception:
+            try: return thumbnails[0]['url']
+            except: return ""
+
     @mainthread
     def _update_results_rv(self, results, title):
         """Thread-safe UI update using RecycleView.data"""
@@ -1696,10 +1710,11 @@ class MusicPlayerApp(MDApp):
         # Map raw results to SearchItem properties
         rv_data = []
         for i, res in enumerate(results):
+            best_thumb = self._get_best_thumb(res.get('thumbnails', [])) or res.get('thumbnail', '')
             rv_data.append({
-                'title': str(res.get('title', 'Unknown'))[:55],
+                'title': str(res.get('title', 'Unknown')),
                 'artist': res.get('artist', 'YouTube'),
-                'thumbnail': res.get('thumbnails', [{}])[0].get('url', '') if res.get('thumbnails') else '',
+                'thumbnail': best_thumb,
                 'index': i,
                 'song_data': res,
                 'is_playlist_view': False
