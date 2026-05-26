@@ -2554,4 +2554,11 @@ def toast(message):
         md_toast(message)
 
 if __name__ == "__main__":
-    MusicPlayerApp().run()
+    try:
+        MusicPlayerApp().run()
+    except Exception as e:
+        import traceback
+        error_msg = traceback.format_exc()
+        print(error_msg)
+        with open("error_report.txt", "w") as f:
+            f.write(error_msg)
