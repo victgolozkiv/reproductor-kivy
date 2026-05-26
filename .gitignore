@@ -1,0 +1,10 @@
+venv/
+.buildozer/
+bin/
+__pycache__/
+*.pyc
+.DS_Store
+*.apk
+*.log
+playlists.json
+.gemini/
