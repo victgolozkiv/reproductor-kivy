@@ -7,6 +7,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
 from kivy.graphics import Color, Line
 from kivy.factory import Factory
+from kivy.clock import Clock
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -228,23 +229,23 @@ class DesktopScreenLibrary(MDScreen):
         layout = MDBoxLayout(orientation="vertical", padding=[0, dp(20), 0, 0], spacing=dp(20))
         
         header_layout = MDBoxLayout(adaptive_height=True, spacing=dp(20))
-        self.ids.list_header = MDLabel(
+        self.ids["list_header"] = MDLabel(
             text="Recomendados para ti",
             font_style="H5",
             bold=True
         )
-        self.ids.search_spinner = MDSpinner(
+        self.ids["search_spinner"] = MDSpinner(
             size_hint=(None, None),
             size=(dp(30), dp(30)),
             active=False,
             color="#BB86FC"
         )
-        header_layout.add_widget(self.ids.list_header)
-        header_layout.add_widget(self.ids.search_spinner)
+        header_layout.add_widget(self.ids["list_header"])
+        header_layout.add_widget(self.ids["search_spinner"])
         layout.add_widget(header_layout)
         
-        self.ids.results_rv = RecycleView()
-        self.ids.results_rv.viewclass = 'DesktopSearchItem'
+        self.ids["results_rv"] = RecycleView()
+        self.ids["results_rv"].viewclass = 'DesktopSearchItem'
         
         grid = RecycleGridLayout(
             cols=4,
@@ -255,8 +256,8 @@ class DesktopScreenLibrary(MDScreen):
             padding=[0, 0, dp(20), dp(20)]
         )
         grid.bind(minimum_height=grid.setter('height'))
-        self.ids.results_rv.add_widget(grid)
-        layout.add_widget(self.ids.results_rv)
+        self.ids["results_rv"].add_widget(grid)
+        layout.add_widget(self.ids["results_rv"])
         self.add_widget(layout)
 
 class DesktopScreenPlaylists(MDScreen):
@@ -266,8 +267,8 @@ class DesktopScreenPlaylists(MDScreen):
         layout = MDBoxLayout(orientation="vertical", padding=[0, dp(20), 0, 0], spacing=dp(20))
         layout.add_widget(MDLabel(text="Mis Playlists", font_style="H5", bold=True))
         
-        self.ids.playlists_rv = RecycleView()
-        self.ids.playlists_rv.viewclass = 'DesktopPlaylistItem'
+        self.ids["playlists_rv"] = RecycleView()
+        self.ids["playlists_rv"].viewclass = 'DesktopPlaylistItem'
         grid = RecycleGridLayout(
             cols=3,
             default_size=(None, dp(80)),
@@ -276,8 +277,8 @@ class DesktopScreenPlaylists(MDScreen):
             spacing=dp(16)
         )
         grid.bind(minimum_height=grid.setter('height'))
-        self.ids.playlists_rv.add_widget(grid)
-        layout.add_widget(self.ids.playlists_rv)
+        self.ids["playlists_rv"].add_widget(grid)
+        layout.add_widget(self.ids["playlists_rv"])
         self.add_widget(layout)
 
 class DesktopScreenOffline(MDScreen):
@@ -287,8 +288,8 @@ class DesktopScreenOffline(MDScreen):
         layout = MDBoxLayout(orientation="vertical", padding=[0, dp(20), 0, 0], spacing=dp(20))
         layout.add_widget(MDLabel(text="Música Descargada", font_style="H5", bold=True))
         
-        self.ids.offline_rv = RecycleView()
-        self.ids.offline_rv.viewclass = 'DesktopOfflineItem'
+        self.ids["offline_rv"] = RecycleView()
+        self.ids["offline_rv"].viewclass = 'DesktopOfflineItem'
         box = RecycleBoxLayout(
             default_size=(None, dp(80)),
             default_size_hint=(1, None),
@@ -297,8 +298,8 @@ class DesktopScreenOffline(MDScreen):
             spacing=dp(8)
         )
         box.bind(minimum_height=box.setter('height'))
-        self.ids.offline_rv.add_widget(box)
-        layout.add_widget(self.ids.offline_rv)
+        self.ids["offline_rv"].add_widget(box)
+        layout.add_widget(self.ids["offline_rv"])
         self.add_widget(layout)
 
 class DesktopScreenPlayer(MDScreen):
@@ -315,50 +316,50 @@ class DesktopScreenPlayer(MDScreen):
             elevation=8,
             pos_hint={"center_y": 0.5}
         )
-        self.ids.thumbnail = FitImage(radius=[dp(24)])
-        card.add_widget(self.ids.thumbnail)
+        self.ids["thumbnail"] = FitImage(radius=[dp(24)])
+        card.add_widget(self.ids["thumbnail"])
         layout.add_widget(card)
         
         # Info & Lyrics
         info_layout = MDBoxLayout(orientation="vertical", spacing=dp(24), pos_hint={"center_y": 0.5})
         
-        self.ids.song_title = MDLabel(
+        self.ids["song_title"] = MDLabel(
             text="Título de la canción",
             font_style="H3",
             bold=True,
             adaptive_height=True
         )
-        self.ids.artist_name = MDLabel(
+        self.ids["artist_name"] = MDLabel(
             text="Nombre del Artista",
             font_style="H5",
             theme_text_color="Secondary",
             adaptive_height=True
         )
-        info_layout.add_widget(self.ids.song_title)
-        info_layout.add_widget(self.ids.artist_name)
+        info_layout.add_widget(self.ids["song_title"])
+        info_layout.add_widget(self.ids["artist_name"])
         
         actions_layout = MDBoxLayout(adaptive_height=True, spacing=dp(16))
         actions_layout.add_widget(MDIconButton(icon="heart-outline", user_font_size="32sp"))
         actions_layout.add_widget(MDIconButton(icon="playlist-plus", user_font_size="32sp"))
         info_layout.add_widget(actions_layout)
         
-        self.ids.loading_spinner = MDSpinner(
+        self.ids["loading_spinner"] = MDSpinner(
             active=False,
             size_hint=(None, None),
             size=(dp(48), dp(48))
         )
-        info_layout.add_widget(self.ids.loading_spinner)
+        info_layout.add_widget(self.ids["loading_spinner"])
         
         # Hidden compatibility widgets
-        self.ids.progress_slider = MDSlider(opacity=0, size_hint_y=None, height=0)
-        self.ids.current_time_label = MDLabel(opacity=0, height=0)
-        self.ids.total_time_label = MDLabel(opacity=0, height=0)
-        self.ids.play_pause_btn = MDIconButton(opacity=0, height=0)
+        self.ids["progress_slider"] = MDSlider(opacity=0, size_hint_y=None, height=0)
+        self.ids["current_time_label"] = MDLabel(opacity=0, height=0)
+        self.ids["total_time_label"] = MDLabel(opacity=0, height=0)
+        self.ids["play_pause_btn"] = MDIconButton(opacity=0, height=0)
         
-        info_layout.add_widget(self.ids.progress_slider)
-        info_layout.add_widget(self.ids.current_time_label)
-        info_layout.add_widget(self.ids.total_time_label)
-        info_layout.add_widget(self.ids.play_pause_btn)
+        info_layout.add_widget(self.ids["progress_slider"])
+        info_layout.add_widget(self.ids["current_time_label"])
+        info_layout.add_widget(self.ids["total_time_label"])
+        info_layout.add_widget(self.ids["play_pause_btn"])
         
         layout.add_widget(info_layout)
         self.add_widget(layout)
@@ -368,8 +369,6 @@ class DesktopRootLayout(MDBoxLayout):
         super().__init__(**kwargs)
         self.orientation = "vertical"
         self.md_bg_color = "#000000"
-        
-        app = MDApp.get_running_app()
         
         # Horizontal layout for Sidebar + Main Content
         horiz_layout = MDBoxLayout(orientation="horizontal")
@@ -401,21 +400,21 @@ class DesktopRootLayout(MDBoxLayout):
         self.sidebar_home = DesktopSidebarItem(
             text="Inicio",
             icon="home",
-            on_release=lambda x: app.go_to_library()
+            on_release=lambda x: MDApp.get_running_app().go_to_library() if MDApp.get_running_app() else None
         )
         self.sidebar_playlists = DesktopSidebarItem(
             text="Playlists",
             icon="playlist-music",
-            on_release=lambda x: app.go_to_playlists()
+            on_release=lambda x: MDApp.get_running_app().go_to_playlists() if MDApp.get_running_app() else None
         )
         self.sidebar_offline = DesktopSidebarItem(
             text="Descargas",
             icon="download-circle",
-            on_release=lambda x: app.go_to_offline()
+            on_release=lambda x: MDApp.get_running_app().go_to_offline() if MDApp.get_running_app() else None
         )
         
         # Active binding
-        app.bind(current_screen=self._update_sidebar_active)
+        Clock.schedule_once(lambda dt: MDApp.get_running_app().bind(current_screen=self._update_sidebar_active) if MDApp.get_running_app() else None)
         
         nav_layout.add_widget(self.sidebar_home)
         nav_layout.add_widget(self.sidebar_playlists)
@@ -437,7 +436,7 @@ class DesktopRootLayout(MDBoxLayout):
                 icon="circle",
                 theme_text_color="Custom",
                 text_color=color,
-                on_release=lambda x, c=color: app.change_theme(c)
+                on_release=lambda x, c=color: MDApp.get_running_app().change_theme(c) if MDApp.get_running_app() else None
             )
             theme_grid.add_widget(btn)
         sidebar.add_widget(theme_grid)
@@ -454,16 +453,16 @@ class DesktopRootLayout(MDBoxLayout):
             padding=dp(8),
             spacing=dp(8)
         )
-        self.ids.side_player_thumb = FitImage(radius=[dp(12)])
-        self.ids.side_player_title = MDLabel(
+        self.ids["side_player_thumb"] = FitImage(radius=[dp(12)])
+        self.ids["side_player_title"] = MDLabel(
             text="Reproduciendo ahora",
             bold=True,
             halign="center",
             font_style="Subtitle2",
             adaptive_height=True
         )
-        side_card.add_widget(self.ids.side_player_thumb)
-        side_card.add_widget(self.ids.side_player_title)
+        side_card.add_widget(self.ids["side_player_thumb"])
+        side_card.add_widget(self.ids["side_player_title"])
         sidebar.add_widget(side_card)
         
         horiz_layout.add_widget(sidebar)
@@ -482,15 +481,15 @@ class DesktopRootLayout(MDBoxLayout):
         )
         search_box = MDBoxLayout(spacing=dp(12))
         search_box.add_widget(MDIcon(icon="magnify", theme_text_color="Custom", text_color="#B3B3B3", pos_hint={"center_y": 0.5}))
-        self.ids.desktop_search_input = MDTextField(
+        self.ids["desktop_search_input"] = MDTextField(
             hint_text="Buscar canciones, artistas o álbumes...",
             mode="rectangle",
             fill_color_normal=[0,0,0,0],
             line_color_normal=[0,0,0,0],
             line_color_focus=[0,0,0,0]
         )
-        self.ids.desktop_search_input.bind(on_text_validate=lambda x: app.search_songs(x.text))
-        search_box.add_widget(self.ids.desktop_search_input)
+        self.ids["desktop_search_input"].bind(on_text_validate=lambda x: MDApp.get_running_app().search_songs(x.text) if MDApp.get_running_app() else None)
+        search_box.add_widget(self.ids["desktop_search_input"])
         search_card.add_widget(search_box)
         top_bar.add_widget(search_card)
         top_bar.add_widget(Widget())
@@ -498,12 +497,12 @@ class DesktopRootLayout(MDBoxLayout):
         main_content.add_widget(top_bar)
         
         # SCREEN MANAGER
-        self.ids.screen_manager = MDScreenManager()
-        self.ids.screen_manager.add_widget(DesktopScreenLibrary())
-        self.ids.screen_manager.add_widget(DesktopScreenPlaylists())
-        self.ids.screen_manager.add_widget(DesktopScreenOffline())
-        self.ids.screen_manager.add_widget(DesktopScreenPlayer())
-        main_content.add_widget(self.ids.screen_manager)
+        self.ids["screen_manager"] = MDScreenManager()
+        self.ids["screen_manager"].add_widget(DesktopScreenLibrary())
+        self.ids["screen_manager"].add_widget(DesktopScreenPlaylists())
+        self.ids["screen_manager"].add_widget(DesktopScreenOffline())
+        self.ids["screen_manager"].add_widget(DesktopScreenPlayer())
+        main_content.add_widget(self.ids["screen_manager"])
         
         horiz_layout.add_widget(main_content)
         self.add_widget(horiz_layout)
@@ -523,13 +522,13 @@ class DesktopRootLayout(MDBoxLayout):
         
         # Left: Song Info
         info_box = MDBoxLayout(size_hint_x=0.25, spacing=dp(16))
-        self.ids.bottom_thumb = FitImage(size_hint=(None, None), size=(dp(64), dp(64)), radius=[dp(8)])
+        self.ids["bottom_thumb"] = FitImage(size_hint=(None, None), size=(dp(64), dp(64)), radius=[dp(8)])
         info_labels = MDBoxLayout(orientation="vertical", pos_hint={"center_y": 0.5}, adaptive_height=True)
-        self.ids.bottom_title = MDLabel(text="Ninguna canción", bold=True, font_style="Subtitle1", shorten=True)
-        self.ids.bottom_artist = MDLabel(text="Artista", theme_text_color="Secondary", font_style="Caption", shorten=True)
-        info_labels.add_widget(self.ids.bottom_title)
-        info_labels.add_widget(self.ids.bottom_artist)
-        info_box.add_widget(self.ids.bottom_thumb)
+        self.ids["bottom_title"] = MDLabel(text="Ninguna canción", bold=True, font_style="Subtitle1", shorten=True)
+        self.ids["bottom_artist"] = MDLabel(text="Artista", theme_text_color="Secondary", font_style="Caption", shorten=True)
+        info_labels.add_widget(self.ids["bottom_title"])
+        info_labels.add_widget(self.ids["bottom_artist"])
+        info_box.add_widget(self.ids["bottom_thumb"])
         info_box.add_widget(info_labels)
         bottom_bar.add_widget(info_box)
         
@@ -537,43 +536,46 @@ class DesktopRootLayout(MDBoxLayout):
         controls_outer = MDBoxLayout(orientation="vertical", size_hint_x=0.5, spacing=dp(4))
         controls_inner = MDBoxLayout(pos_hint={"center_x": 0.5}, spacing=dp(24), adaptive_width=True)
         controls_inner.add_widget(MDIconButton(icon="shuffle", theme_text_color="Custom", text_color="#B3B3B3"))
-        controls_inner.add_widget(MDIconButton(icon="skip-previous", user_font_size="30sp", on_release=lambda x: app.on_previous()))
-        self.ids.bottom_play_btn = MDIconButton(
+        controls_inner.add_widget(MDIconButton(icon="skip-previous", user_font_size="30sp", on_release=lambda x: MDApp.get_running_app().on_previous() if MDApp.get_running_app() else None))
+        self.ids["bottom_play_btn"] = MDIconButton(
             icon="play-circle",
             user_font_size="48sp",
             theme_text_color="Custom",
             text_color="#BB86FC",
-            on_release=lambda x: app.toggle_playback()
+            on_release=lambda x: MDApp.get_running_app().toggle_playback() if MDApp.get_running_app() else None
         )
-        controls_inner.add_widget(self.ids.bottom_play_btn)
-        controls_inner.add_widget(MDIconButton(icon="skip-next", user_font_size="30sp", on_release=lambda x: app.on_next()))
+        controls_inner.add_widget(self.ids["bottom_play_btn"])
+        controls_inner.add_widget(MDIconButton(icon="skip-next", user_font_size="30sp", on_release=lambda x: MDApp.get_running_app().on_next() if MDApp.get_running_app() else None))
         controls_inner.add_widget(MDIconButton(icon="repeat", theme_text_color="Custom", text_color="#B3B3B3"))
         controls_outer.add_widget(controls_inner)
         
         progress_box = MDBoxLayout(spacing=dp(12))
-        self.ids.bottom_current_time = MDLabel(text="0:00", font_style="Caption", size_hint_x=None, width=dp(40), halign="right")
-        self.ids.bottom_progress = MDSlider(min=0, max=100, value=0, color="#BB86FC", hint=False)
-        self.ids.bottom_total_time = MDLabel(text="0:00", font_style="Caption", size_hint_x=None, width=dp(40))
-        progress_box.add_widget(self.ids.bottom_current_time)
-        progress_box.add_widget(self.ids.bottom_progress)
-        progress_box.add_widget(self.ids.bottom_total_time)
+        self.ids["bottom_current_time"] = MDLabel(text="0:00", font_style="Caption", size_hint_x=None, width=dp(40), halign="right")
+        self.ids["bottom_progress"] = MDSlider(min=0, max=100, value=0, color="#BB86FC", hint=False)
+        self.ids["bottom_total_time"] = MDLabel(text="0:00", font_style="Caption", size_hint_x=None, width=dp(40))
+        progress_box.add_widget(self.ids["bottom_current_time"])
+        progress_box.add_widget(self.ids["bottom_progress"])
+        progress_box.add_widget(self.ids["bottom_total_time"])
         controls_outer.add_widget(progress_box)
         bottom_bar.add_widget(controls_outer)
         
         # Right: Volume & Extra
         right_box = MDBoxLayout(size_hint_x=0.25, spacing=dp(12))
         right_box.add_widget(MDIcon(icon="volume-high", theme_text_color="Secondary", pos_hint={"center_y": 0.5}))
-        self.ids.volume_slider = MDSlider(min=0, max=100, value=100, color="#BB86FC", size_hint_x=0.6, pos_hint={"center_y": 0.5})
-        right_box.add_widget(self.ids.volume_slider)
+        self.ids["volume_slider"] = MDSlider(min=0, max=100, value=100, color="#BB86FC", size_hint_x=0.6, pos_hint={"center_y": 0.5})
+        right_box.add_widget(self.ids["volume_slider"])
         right_box.add_widget(MDIconButton(icon="playlist-play", pos_hint={"center_y": 0.5}))
-        right_box.add_widget(MDIconButton(icon="maximize", on_release=lambda x: app.go_to_player(), pos_hint={"center_y": 0.5}))
+        right_box.add_widget(MDIconButton(icon="maximize", on_release=lambda x: MDApp.get_running_app().go_to_player() if MDApp.get_running_app() else None, pos_hint={"center_y": 0.5}))
         bottom_bar.add_widget(right_box)
         
         self.add_widget(bottom_bar)
         
         # Initial sidebar state (if app already has current_screen)
-        if hasattr(app, 'current_screen'):
-            self._update_sidebar_active(app, app.current_screen)
+        def set_initial_state(dt):
+            app = MDApp.get_running_app()
+            if app and hasattr(app, 'current_screen'):
+                self._update_sidebar_active(app, app.current_screen)
+        Clock.schedule_once(set_initial_state)
 
     def _update_bottom_line(self, instance, value):
         self.bottom_line.points = [instance.x, instance.top, instance.right, instance.top]

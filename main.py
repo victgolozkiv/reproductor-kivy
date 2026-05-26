@@ -440,25 +440,23 @@ class MobileScreenLibrary(MDScreen):
         self.name = "library"
         self.md_bg_color = "#000000"
         
-        app = MDApp.get_running_app()
-        
         main_layout = MDBoxLayout(orientation="vertical")
         
-        self.ids.top_bar = MDTopAppBar(
+        self.ids['top_bar'] = MDTopAppBar(
             title="Mi Biblioteca",
             anchor_title="left",
             elevation=0,
             md_bg_color="#000000",
             specific_text_color="#FFFFFF"
         )
-        self.ids.top_bar.right_action_items = [
-            ["playlist-music", lambda x: app.go_to_playlists()],
-            ["folder-music", lambda x: app.go_to_offline()]
+        self.ids['top_bar'].right_action_items = [
+            ["playlist-music", lambda x: MDApp.get_running_app().go_to_playlists()],
+            ["folder-music", lambda x: MDApp.get_running_app().go_to_offline()]
         ]
-        main_layout.add_widget(self.ids.top_bar)
+        main_layout.add_widget(self.ids['top_bar'])
         
         search_layout = MDBoxLayout(orientation="vertical", size_hint_y=None, height=dp(60), padding=[dp(16), dp(8)])
-        self.ids.search_input = MDTextField(
+        self.ids['search_input'] = MDTextField(
             hint_text="Buscar música...",
             mode="fill",
             fill_color_normal="#1A1A1A",
@@ -471,12 +469,12 @@ class MobileScreenLibrary(MDScreen):
             icon_left_color_normal="#BB86FC",
             active_line_color_normal="#BB86FC"
         )
-        self.ids.search_input.bind(on_text_validate=lambda x: app.search_songs(x.text))
-        search_layout.add_widget(self.ids.search_input)
+        self.ids['search_input'].bind(on_text_validate=lambda x: MDApp.get_running_app().search_songs(x.text))
+        search_layout.add_widget(self.ids['search_input'])
         main_layout.add_widget(search_layout)
         
         header_layout = MDBoxLayout(size_hint_y=None, height=dp(40), padding=[dp(16), dp(8), dp(16), 0])
-        self.ids.list_header = MDLabel(
+        self.ids['list_header'] = MDLabel(
             text="RECOMENDADOS",
             theme_text_color="Custom",
             text_color="#BB86FC",
@@ -485,18 +483,18 @@ class MobileScreenLibrary(MDScreen):
             halign="left",
             valign="center"
         )
-        header_layout.add_widget(self.ids.list_header)
+        header_layout.add_widget(self.ids['list_header'])
         main_layout.add_widget(header_layout)
         
         results_layout = MDBoxLayout(orientation="vertical", size_hint_y=1, padding=[dp(8), dp(4), dp(8), 0])
-        self.ids.results_rv = RecycleView(
+        self.ids['results_rv'] = RecycleView(
             size_hint=(1, 1),
             bar_width=dp(4),
             bar_color=[0.737, 0.525, 0.988, 0.5],
             bar_inactive_color=[0.737, 0.525, 0.988, 0.2],
             scroll_type=['bars', 'content']
         )
-        self.ids.results_rv.viewclass = 'SearchItem'
+        self.ids['results_rv'].viewclass = 'SearchItem'
         
         self.rv_layout = RecycleBoxLayout(
             default_size=(None, dp(72)),
@@ -507,28 +505,28 @@ class MobileScreenLibrary(MDScreen):
             padding=[dp(8), 0, dp(8), dp(8)]
         )
         self.rv_layout.bind(minimum_height=self.rv_layout.setter('height'))
-        self.ids.results_rv.add_widget(self.rv_layout)
-        results_layout.add_widget(self.ids.results_rv)
+        self.ids['results_rv'].add_widget(self.rv_layout)
+        results_layout.add_widget(self.ids['results_rv'])
         main_layout.add_widget(results_layout)
         
         # Overlay for spinner
-        self.ids.spinner_container = MDAnchorLayout(
+        self.ids['spinner_container'] = MDAnchorLayout(
             size_hint=(None, None),
             size=(dp(50), dp(50)),
             pos_hint={'center_x': 0.5, 'center_y': 0.5}
         )
-        self.ids.search_spinner = MDSpinner(
+        self.ids['search_spinner'] = MDSpinner(
             size_hint=(None, None),
             size=(dp(40), dp(40)),
             active=False,
             color="#BB86FC"
         )
-        self.ids.spinner_container.add_widget(self.ids.search_spinner)
+        self.ids['spinner_container'].add_widget(self.ids['search_spinner'])
         
         # Root for screen
         root_rel = RelativeLayout()
         root_rel.add_widget(main_layout)
-        root_rel.add_widget(self.ids.spinner_container)
+        root_rel.add_widget(self.ids['spinner_container'])
         
         fab = MDFloatingActionButton(
             icon="music-note",
@@ -538,33 +536,34 @@ class MobileScreenLibrary(MDScreen):
             size=(dp(56), dp(56)),
             pos_hint={"right": 0.95, "y": 0.02}
         )
-        fab.bind(on_release=lambda x: app.go_to_player())
+        fab.bind(on_release=lambda x: MDApp.get_running_app().go_to_player())
         root_rel.add_widget(fab)
         
         self.add_widget(root_rel)
+
+Factory.register('MobileScreenLibrary', cls=MobileScreenLibrary)
 
 class MobileScreenOffline(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "offline"
         self.md_bg_color = "#000000"
-        app = MDApp.get_running_app()
         
         layout = MDBoxLayout(orientation="vertical")
         
-        self.ids.top_bar = MDTopAppBar(
+        self.ids['top_bar'] = MDTopAppBar(
             title="Descargas",
             anchor_title="left",
             elevation=0,
             md_bg_color="#000000",
             specific_text_color="#FFFFFF",
-            left_action_items=[["arrow-left", lambda x: app.go_to_library()]],
-            right_action_items=[["folder-settings", lambda x: app.open_file_manager()]]
+            left_action_items=[["arrow-left", lambda x: MDApp.get_running_app().go_to_library()]],
+            right_action_items=[["folder-settings", lambda x: MDApp.get_running_app().open_file_manager()]]
         )
-        layout.add_widget(self.ids.top_bar)
+        layout.add_widget(self.ids['top_bar'])
         
         content = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(8), dp(8), dp(80)])
-        self.ids.offline_rv = RecycleView(viewclass='OfflineItem')
+        self.ids['offline_rv'] = RecycleView(viewclass='OfflineItem')
         rv_layout = RecycleBoxLayout(
             default_size=(None, dp(72)),
             default_size_hint=(1, None),
@@ -574,8 +573,8 @@ class MobileScreenOffline(MDScreen):
             padding=[dp(8), 0, dp(8), 0]
         )
         rv_layout.bind(minimum_height=rv_layout.setter('height'))
-        self.ids.offline_rv.add_widget(rv_layout)
-        content.add_widget(self.ids.offline_rv)
+        self.ids['offline_rv'].add_widget(rv_layout)
+        content.add_widget(self.ids['offline_rv'])
         layout.add_widget(content)
         
         rel = RelativeLayout()
@@ -589,33 +588,34 @@ class MobileScreenOffline(MDScreen):
             size=(dp(56), dp(56)),
             pos_hint={"right": 0.95, "y": 0.02}
         )
-        fab.bind(on_release=lambda x: app.load_offline_songs())
+        fab.bind(on_release=lambda x: MDApp.get_running_app().load_offline_songs())
         rel.add_widget(fab)
         
         self.add_widget(rel)
+
+Factory.register('MobileScreenOffline', cls=MobileScreenOffline)
 
 class MobileScreenPlaylists(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "playlists"
         self.md_bg_color = "#000000"
-        app = MDApp.get_running_app()
         
         layout = MDBoxLayout(orientation="vertical")
         
-        self.ids.top_bar = MDTopAppBar(
+        self.ids['top_bar'] = MDTopAppBar(
             title="Mis Playlists",
             anchor_title="left",
             elevation=0,
             md_bg_color="#000000",
             specific_text_color="#FFFFFF",
-            left_action_items=[["arrow-left", lambda x: app.go_to_library()]],
-            right_action_items=[["plus", lambda x: app.create_playlist_dialog()]]
+            left_action_items=[["arrow-left", lambda x: MDApp.get_running_app().go_to_library()]],
+            right_action_items=[["plus", lambda x: MDApp.get_running_app().create_playlist_dialog()]]
         )
-        layout.add_widget(self.ids.top_bar)
+        layout.add_widget(self.ids['top_bar'])
         
         content = MDBoxLayout(orientation="vertical", padding=[dp(8), dp(8), dp(8), dp(8)])
-        self.ids.playlists_rv = RecycleView(viewclass='PlaylistItem')
+        self.ids['playlists_rv'] = RecycleView(viewclass='PlaylistItem')
         rv_layout = RecycleBoxLayout(
             default_size=(None, dp(72)),
             default_size_hint=(1, None),
@@ -625,68 +625,69 @@ class MobileScreenPlaylists(MDScreen):
             padding=[dp(8), 0, dp(8), 0]
         )
         rv_layout.bind(minimum_height=rv_layout.setter('height'))
-        self.ids.playlists_rv.add_widget(rv_layout)
-        content.add_widget(self.ids.playlists_rv)
+        self.ids['playlists_rv'].add_widget(rv_layout)
+        content.add_widget(self.ids['playlists_rv'])
         layout.add_widget(content)
         
         self.add_widget(layout)
+
+Factory.register('MobileScreenPlaylists', cls=MobileScreenPlaylists)
 
 class MobileScreenPlayer(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "player"
         self.md_bg_color = "#000000"
-        app = MDApp.get_running_app()
         
         layout = MDBoxLayout(orientation="vertical", spacing=dp(8))
         
-        self.ids.top_bar = MDTopAppBar(
+        self.ids['top_bar'] = MDTopAppBar(
             title="",
             elevation=0,
             md_bg_color="#000000",
             specific_text_color="#BB86FC",
-            left_action_items=[["chevron-down", lambda x: app.go_to_library()]]
+            left_action_items=[["chevron-down", lambda x: MDApp.get_running_app().go_to_library()]]
         )
-        self.ids.top_bar.right_action_items = [
-            ["playlist-plus", lambda x: app.add_song_to_playlist_dialog(app.get_current_song_data())],
-            ["download", lambda x: app.download_song()]
+        self.ids['top_bar'].right_action_items = [
+            ["playlist-plus", lambda x: MDApp.get_running_app().add_song_to_playlist_dialog(MDApp.get_running_app().get_current_song_data())],
+            ["download", lambda x: MDApp.get_running_app().download_song()]
         ]
-        layout.add_widget(self.ids.top_bar)
+        layout.add_widget(self.ids['top_bar'])
         
         # Album Art
         art_layout = MDBoxLayout(orientation="vertical", size_hint_y=0.42, padding=[dp(32), dp(16)])
-        self.ids.album_card = MDCard(
+        self.ids['album_card'] = MDCard(
             size_hint=(1, 1),
             radius=[dp(24)],
             elevation=8,
             md_bg_color="#000000",
             shadow_color=[0.737, 0.525, 0.988, 0.4]
         )
-        with self.ids.album_card.canvas.before:
+        with self.ids['album_card'].canvas.before:
             self.album_border_color = Color(0.737, 0.525, 0.988, 0.6)
             self.album_border = Line(width=3, rounded_rectangle=(0, 0, 0, 0, 24))
-        self.ids.album_card.bind(pos=self._update_album_border, size=self._update_album_border)
+        self.ids['album_card'].bind(pos=self._update_album_border, size=self._update_album_border)
         
-        self.ids.thumbnail = FitImage(radius=[dp(24)], allow_stretch=True, keep_ratio=False)
-        self.ids.album_card.add_widget(self.ids.thumbnail)
+        self.ids['thumbnail'] = FitImage(radius=[dp(24)], allow_stretch=True, keep_ratio=False)
+        self.ids['album_card'].add_widget(self.ids['thumbnail'])
         
         art_rel = RelativeLayout()
-        art_rel.add_widget(self.ids.album_card)
+        art_rel.add_widget(self.ids['album_card'])
         
-        self.ids.loading_spinner = MDSpinner(
+        self.ids['loading_spinner'] = MDSpinner(
             size_hint=(None, None),
             size=(dp(46), dp(46)),
             pos_hint={'center_x': .5, 'center_y': .5},
             active=False,
             color="#BB86FC"
         )
-        art_rel.add_widget(self.ids.loading_spinner)
+        art_rel.add_widget(self.ids['loading_spinner'])
         art_layout.add_widget(art_rel)
         layout.add_widget(art_layout)
         
         # Song Info
         info_layout = MDBoxLayout(orientation="vertical", adaptive_height=True, spacing=dp(6), padding=[dp(24), dp(8)])
-        self.ids.song_title = MDLabel(
+        self.ids['song_title'] = MDLabel(
             text="Título de la canción",
             halign="center",
             theme_text_color="Custom",
@@ -695,7 +696,7 @@ class MobileScreenPlayer(MDScreen):
             bold=True,
             adaptive_height=True
         )
-        self.ids.artist_name = MDLabel(
+        self.ids['artist_name'] = MDLabel(
             text="Artista",
             halign="center",
             theme_text_color="Custom",
@@ -703,32 +704,32 @@ class MobileScreenPlayer(MDScreen):
             font_size="16sp",
             adaptive_height=True
         )
-        info_layout.add_widget(self.ids.song_title)
-        info_layout.add_widget(self.ids.artist_name)
+        info_layout.add_widget(self.ids['song_title'])
+        info_layout.add_widget(self.ids['artist_name'])
         layout.add_widget(info_layout)
         
         # Progress Bar
         progress_layout = MDBoxLayout(orientation="vertical", adaptive_height=True, spacing=dp(8), padding=[dp(24), dp(12)])
-        self.ids.progress_slider = MDSlider(
+        self.ids['progress_slider'] = MDSlider(
             size_hint_y=None, height=dp(30),
             min=0, max=100, value=0,
             color="#BB86FC", hint=False
         )
-        progress_layout.add_widget(self.ids.progress_slider)
+        progress_layout.add_widget(self.ids['progress_slider'])
         
         times_layout = MDBoxLayout(orientation="horizontal", adaptive_height=True)
-        self.ids.current_time_label = MDLabel(
+        self.ids['current_time_label'] = MDLabel(
             text="00:00", font_size="12sp",
             theme_text_color="Custom", text_color="#888888",
             size_hint_x=1, halign="left"
         )
-        self.ids.total_time_label = MDLabel(
+        self.ids['total_time_label'] = MDLabel(
             text="00:00", font_size="12sp",
             theme_text_color="Custom", text_color="#888888",
             size_hint_x=1, halign="right"
         )
-        times_layout.add_widget(self.ids.current_time_label)
-        times_layout.add_widget(self.ids.total_time_label)
+        times_layout.add_widget(self.ids['current_time_label'])
+        times_layout.add_widget(self.ids['total_time_label'])
         progress_layout.add_widget(times_layout)
         layout.add_widget(progress_layout)
         
@@ -739,21 +740,21 @@ class MobileScreenPlayer(MDScreen):
         main_ctrl_box = MDBoxLayout(orientation="horizontal", size_hint=(None, None), size=(dp(320), dp(48)), spacing=dp(16))
         
         rewind_btn = MDIconButton(icon="rewind-10", user_font_size="24sp", theme_text_color="Custom", text_color="#888888", size_hint=(None, None), size=(dp(48), dp(48)))
-        rewind_btn.bind(on_release=lambda x: app.seek_relative(-10))
+        rewind_btn.bind(on_release=lambda x: MDApp.get_running_app().seek_relative(-10))
         
         prev_btn = MDIconButton(icon="skip-previous", user_font_size="36sp", theme_text_color="Custom", text_color="#BB86FC", size_hint=(None, None), size=(dp(48), dp(48)))
-        prev_btn.bind(on_release=lambda x: app.on_previous())
+        prev_btn.bind(on_release=lambda x: MDApp.get_running_app().on_previous())
         
         play_card = MDCard(size_hint=(None, None), size=(dp(56), dp(56)), radius=[dp(28)], elevation=4, md_bg_color="#BB86FC", shadow_color=[0.737, 0.525, 0.988, 0.6], pos_hint={"center_y": 0.5})
-        self.ids.play_pause_btn = MDIconButton(icon="pause", user_font_size="32sp", theme_text_color="Custom", text_color="#000000", pos_hint={"center_x": .5, "center_y": .5}, size_hint=(1, 1))
-        self.ids.play_pause_btn.bind(on_release=lambda x: app.toggle_playback())
-        play_card.add_widget(self.ids.play_pause_btn)
+        self.ids['play_pause_btn'] = MDIconButton(icon="pause", user_font_size="32sp", theme_text_color="Custom", text_color="#000000", pos_hint={"center_x": .5, "center_y": .5}, size_hint=(1, 1))
+        self.ids['play_pause_btn'].bind(on_release=lambda x: MDApp.get_running_app().toggle_playback())
+        play_card.add_widget(self.ids['play_pause_btn'])
         
         next_btn = MDIconButton(icon="skip-next", user_font_size="36sp", theme_text_color="Custom", text_color="#BB86FC", size_hint=(None, None), size=(dp(48), dp(48)))
-        next_btn.bind(on_release=lambda x: app.on_next())
+        next_btn.bind(on_release=lambda x: MDApp.get_running_app().on_next())
         
         ff_btn = MDIconButton(icon="fast-forward-10", user_font_size="24sp", theme_text_color="Custom", text_color="#888888", size_hint=(None, None), size=(dp(48), dp(48)))
-        ff_btn.bind(on_release=lambda x: app.seek_relative(10))
+        ff_btn.bind(on_release=lambda x: MDApp.get_running_app().seek_relative(10))
         
         main_ctrl_box.add_widget(rewind_btn)
         main_ctrl_box.add_widget(prev_btn)
@@ -766,18 +767,18 @@ class MobileScreenPlayer(MDScreen):
         sec_ctrl_anchor = MDAnchorLayout(anchor_x="center", anchor_y="center", size_hint_y=None, height=dp(44))
         sec_ctrl_box = MDBoxLayout(orientation="horizontal", size_hint=(None, None), size=(dp(168), dp(40)), spacing=dp(24))
         
-        self.ids.shuffle_btn = MDIconButton(icon="shuffle", user_font_size="18sp", theme_text_color="Custom", text_color="#444444", size_hint=(None, None), size=(dp(40), dp(40)))
-        self.ids.shuffle_btn.bind(on_release=lambda x: app.toggle_shuffle())
+        self.ids['shuffle_btn'] = MDIconButton(icon="shuffle", user_font_size="18sp", theme_text_color="Custom", text_color="#444444", size_hint=(None, None), size=(dp(40), dp(40)))
+        self.ids['shuffle_btn'].bind(on_release=lambda x: MDApp.get_running_app().toggle_shuffle())
         
-        self.ids.repeat_btn = MDIconButton(icon="repeat", user_font_size="18sp", theme_text_color="Custom", text_color="#444444", size_hint=(None, None), size=(dp(40), dp(40)))
-        self.ids.repeat_btn.bind(on_release=lambda x: app.toggle_repeat())
+        self.ids['repeat_btn'] = MDIconButton(icon="repeat", user_font_size="18sp", theme_text_color="Custom", text_color="#444444", size_hint=(None, None), size=(dp(40), dp(40)))
+        self.ids['repeat_btn'].bind(on_release=lambda x: MDApp.get_running_app().toggle_repeat())
         
-        self.ids.download_btn = MDIconButton(icon="download", user_font_size="18sp", theme_text_color="Custom", text_color="#BB86FC", size_hint=(None, None), size=(dp(40), dp(40)))
-        self.ids.download_btn.bind(on_release=lambda x: app.download_song())
+        self.ids['download_btn'] = MDIconButton(icon="download", user_font_size="18sp", theme_text_color="Custom", text_color="#BB86FC", size_hint=(None, None), size=(dp(40), dp(40)))
+        self.ids['download_btn'].bind(on_release=lambda x: MDApp.get_running_app().download_song())
         
-        sec_ctrl_box.add_widget(self.ids.shuffle_btn)
-        sec_ctrl_box.add_widget(self.ids.repeat_btn)
-        sec_ctrl_box.add_widget(self.ids.download_btn)
+        sec_ctrl_box.add_widget(self.ids['shuffle_btn'])
+        sec_ctrl_box.add_widget(self.ids['repeat_btn'])
+        sec_ctrl_box.add_widget(self.ids['download_btn'])
         sec_ctrl_anchor.add_widget(sec_ctrl_box)
         controls_layout.add_widget(sec_ctrl_anchor)
         
@@ -786,6 +787,8 @@ class MobileScreenPlayer(MDScreen):
 
     def _update_album_border(self, instance, value):
         self.album_border.rounded_rectangle = (instance.x, instance.y, instance.width, instance.height, 24)
+
+Factory.register('MobileScreenPlayer', cls=MobileScreenPlayer)
 
 class MobileRootLayout(MDScreenManager):
     def __init__(self, **kwargs):
@@ -830,7 +833,7 @@ class MusicPlayerApp(MDApp):
             return None
         try:
             if platform != "android" and hasattr(self.root, 'ids') and 'screen_manager' in self.root.ids:
-                return self.root.ids.screen_manager
+                return self.root.ids['screen_manager']
         except: pass
         return self.root
 
@@ -920,8 +923,7 @@ class MusicPlayerApp(MDApp):
         """Thread-safe playlist loader. Path MUST be user_data_dir for Android compatibility."""
         try:
             # On Android, ONLY user_data_dir is a safe read/write path (no permission needed)
-            app = MDApp.get_running_app()
-            safe_path = os.path.join(app.user_data_dir, 'playlists.json')
+            safe_path = os.path.join(self.user_data_dir, 'playlists.json')
             Logger.info(f"App: Loading playlists from {safe_path}")
             if os.path.exists(safe_path):
                 with open(safe_path, 'r', encoding='utf-8') as f:
@@ -943,8 +945,7 @@ class MusicPlayerApp(MDApp):
     def _do_save_playlists(self):
         try:
             # ONLY user_data_dir is guaranteed writable without permissions on Android
-            app = MDApp.get_running_app()
-            save_dir = app.user_data_dir
+            save_dir = self.user_data_dir
             os.makedirs(save_dir, exist_ok=True)
             path = os.path.join(save_dir, 'playlists.json')
             with open(path, 'w', encoding='utf-8') as f:
@@ -1009,19 +1010,19 @@ class MusicPlayerApp(MDApp):
         root = self.root
         
         # Bind screen manager change
-        sm = root.ids.screen_manager if platform != "android" else root
+        sm = root.ids['screen_manager'] if platform != "android" else root
         sm.bind(current=self._on_screen_change)
         
         # Bind Slider & Back Button
         # Use root_sm to find the player screen
-        player_screen = root.ids.screen_manager.get_screen("player") if platform != "android" else root.get_screen("player")
-        slider = player_screen.ids.progress_slider
+        player_screen = root.ids['screen_manager'].get_screen("player") if platform != "android" else root.get_screen("player")
+        slider = player_screen.ids['progress_slider']
         slider.bind(on_touch_down=self._slider_touch_down)
         slider.bind(on_touch_up=self._slider_touch_up)
         
         # If desktop, also bind the bottom bar slider
         if platform != "android":
-            bottom_slider = root.ids.bottom_progress
+            bottom_slider = root.ids['bottom_progress']
             bottom_slider.bind(on_touch_down=self._slider_touch_down)
             bottom_slider.bind(on_touch_up=self._slider_touch_up)
         
@@ -1080,7 +1081,7 @@ class MusicPlayerApp(MDApp):
                     
                     # Also clear search input for clean UI
                     try:
-                        self.root_sm.get_screen("library").ids.search_input.text = ""
+                        self.root_sm.get_screen("library").ids['search_input'].text = ""
                     except: pass
                     return True
                 
@@ -1689,8 +1690,8 @@ class MusicPlayerApp(MDApp):
     def _update_results_rv(self, results, title):
         """Thread-safe UI update using RecycleView.data"""
         lib_ids = self.root_sm.get_screen("library").ids
-        lib_ids.search_spinner.active = False
-        lib_ids.list_header.text = title
+        lib_ids['search_spinner'].active = False
+        lib_ids['list_header'].text = title
         
         self.last_results = results
         
@@ -1707,7 +1708,7 @@ class MusicPlayerApp(MDApp):
                 'is_playlist_view': False
             })
         
-        lib_ids.results_rv.data = rv_data
+        lib_ids['results_rv'].data = rv_data
         
         if not results and "RESULTADOS" in title:
             toast("Sin resultados")
@@ -1736,7 +1737,7 @@ class MusicPlayerApp(MDApp):
 
     @mainthread
     def _display_offline_results(self, files, path):
-        offline_rv = self.root_sm.get_screen("offline").ids.offline_rv
+        offline_rv = self.root_sm.get_screen("offline").ids['offline_rv']
         self.offline_playlist = []
         rv_data = []
         
@@ -1786,19 +1787,19 @@ class MusicPlayerApp(MDApp):
 
         # Prepare UI
         player_screen = self.root_sm.get_screen("player")
-        player_screen.ids.song_title.text = data['title']
-        player_screen.ids.artist_name.text = "Local"
-        player_screen.ids.play_pause_btn.icon = "pause-circle"
-        player_screen.ids.loading_spinner.active = True # Show loading while opening file
+        player_screen.ids['song_title'].text = data['title']
+        player_screen.ids['artist_name'].text = "Local"
+        player_screen.ids['play_pause_btn'].icon = "pause-circle"
+        player_screen.ids['loading_spinner'].active = True # Show loading while opening file
 
         # Update Desktop Bottom Bar
         if platform != "android":
             try:
-                self.root.ids.bottom_title.text = data.get('title', 'Cargando...')
-                self.root.ids.bottom_artist.text = "Local"
-                self.root.ids.side_player_title.text = data.get('title', 'Cargando...')
-                self.root.ids.bottom_thumb.source = "music-note"
-                self.root.ids.side_player_thumb.source = "music-note"
+                self.root.ids['bottom_title'].text = data.get('title', 'Cargando...')
+                self.root.ids['bottom_artist'].text = "Local"
+                self.root.ids['side_player_title'].text = data.get('title', 'Cargando...')
+                self.root.ids['bottom_thumb'].source = "music-note"
+                self.root.ids['side_player_thumb'].source = "music-note"
             except Exception as e:
                 Logger.debug(f"App: Bottom bar play local update error: {e}")
 
