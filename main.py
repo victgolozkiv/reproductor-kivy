@@ -1015,9 +1015,11 @@ class MusicPlayerApp(MDApp):
             else:
                 self.root = Builder.load_string(DESKTOP_UI)
         except Exception as e:
-            Logger.error(f"App: Error crítico cargando KV: {e}")
+            import traceback
+            error_trace = traceback.format_exc()
+            Logger.error(f"App: Error crítico cargando KV:\n{error_trace}")
             from kivymd.uix.label import MDLabel
-            return MDLabel(text=f"Error al iniciar: {e}", halign="center")
+            return MDLabel(text=f"Error al iniciar:\n{str(e)[:100]}", halign="center")
         
         root = self.root
         

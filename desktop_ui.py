@@ -94,32 +94,10 @@ DESKTOP_UI = '''
         size_hint_y: None
         height: self.width
         
-        AsyncImage:
+        FitImage:
             id: card_thumbnail
             source: root.thumbnail if hasattr(root, 'thumbnail') else ""
-            allow_stretch: True
-            keep_ratio: False
-            # Optimized masking for sharpness
-            canvas.before:
-                Color:
-                    rgba: 1, 1, 1, 1
-                StencilPush
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [16, 16, 0, 0]
-                StencilUse
-            canvas.after:
-                StencilUnUse
-                StencilPop
-        
-        # Overlay gradient for depth
-        canvas.after:
-            Color:
-                rgba: 0, 0, 0, 0.1
-            Rectangle:
-                pos: self.pos
-                size: self.size
+            radius: [16, 16, 0, 0]
     
     MDBoxLayout:
         orientation: "vertical"
